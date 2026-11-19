@@ -2,6 +2,15 @@
    Add your real enquiry email to CONTACT_EMAIL before launch. */
 const CONTACT_EMAIL = '';
 
+// Keep the site header fixed and strengthen its background after scrolling.
+const siteHeader = document.querySelector('.site-header');
+if (siteHeader) {
+  const syncHeader = () => siteHeader.classList.toggle('is-scrolled', window.scrollY > 24);
+  syncHeader();
+  window.addEventListener('scroll', syncHeader, { passive: true });
+}
+
+
 const menuToggle = document.querySelector('[data-menu-toggle]');
 const nav = document.querySelector('[data-site-nav]');
 if (menuToggle && nav) {

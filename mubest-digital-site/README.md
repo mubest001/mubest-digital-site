@@ -55,7 +55,9 @@ The hero uses a Pexels video clip as a remote MP4 background, with a static post
 - Warm ivory: `#F5F3EE`
 - Electric blue: `#4563F5`
 - Lime accent: `#B9E769`
-- Headings: Space Grotesk
-- Body: DM Sans
+- Headings: Manrope
+- Body: Inter
+- Horizontal logo: `assets/mubest-digital-logo.svg`
+- Icon-only favicon: `assets/favicon.svg`
 
 The website uses Google Fonts when online and falls back to system fonts if they cannot load.
