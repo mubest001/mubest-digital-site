@@ -1,0 +1,94 @@
+/*
+  MUBEST DIGITAL — TWO-COLOUR BRAND SYSTEM
+  Electric Blue: #4563F5
+  Signature Lime: #B9E769
+  Black, white and greys are neutral structure/text colours.
+  Real portfolio photography and client artwork remain natural.
+*/
+:root {
+  --blue: #4563F5 !important;
+  --blue-deep: #3049D8 !important;
+  --lime: #B9E769 !important;
+  --ink: #17191F !important;
+  --ink-soft: #242832 !important;
+  --paper: #F5F6F8 !important;
+  --paper-2: #E9EBEF !important;
+  --white: #FFFFFF !important;
+  --muted: #737780 !important;
+}
+::selection { color: var(--ink) !important; background: var(--lime) !important; }
+.eyebrow { color: var(--blue) !important; }
+.nav a.active::after { background: var(--lime) !important; }
+.header-cta { color: var(--ink) !important; background: var(--lime) !important; }
+.button-primary { color: #fff !important; background: var(--blue) !important; }
+.button-primary:hover { background: var(--blue-deep) !important; }
+.button-light:hover { color: var(--ink) !important; background: var(--lime) !important; }
+.button-dark:hover { background: var(--blue) !important; }
+.button-outline:hover { border-color: var(--lime) !important; color: var(--lime) !important; }
+
+/* Remove unrelated pastel greens, pinks and purples from decorative mockups. */
+.visual-hobbry, .visual-berry, .visual-artees {
+  background: #E9EBEF !important;
+}
+.service-icon, .service-detail .service-tag, .contact-point span {
+  color: var(--blue) !important;
+  background: var(--paper-2) !important;
+}
+.product-art, .visual-berry .product-art { background: #D9DDE4 !important; }
+.product-art::before, .visual-berry .product-art::before {
+  background: linear-gradient(135deg, #F8F9FA, #BFC5CF) !important;
+}
+.visual-berry .product-copy b { color: var(--ink) !important; }
+.customizer-shirt, .customizer-controls { background: #F1F2F5 !important; }
+.control-line { background: #D9DDE4 !important; }
+.control-colors i { background: var(--ink) !important; }
+.control-colors i:nth-child(2) { background: var(--blue) !important; }
+.control-colors i:nth-child(3) { background: var(--lime) !important; }
+
+/* Keep the visual rhythm, but use only the two brand accents. */
+.intro-section, .work-section { background: var(--paper) !important; }
+.services-section, .service-card, .value-card, .contact-form {
+  background: var(--white) !important;
+}
+.marquee, .cta-section { background: var(--blue) !important; }
+.marquee span::after, .process-step small { color: var(--lime) !important; }
+.process-section, .site-footer, .page-hero {
+  color: #fff !important;
+  background: var(--ink) !important;
+}
+.process-section .eyebrow, .page-hero .eyebrow, .cta-panel .eyebrow {
+  color: var(--lime) !important;
+}
+.about-mark { background: var(--blue) !important; }
+.faq-item.open .faq-question span:last-child {
+  color: var(--ink) !important;
+  background: var(--lime) !important;
+}
+.field input:focus, .field textarea:focus, .field select:focus {
+  border-color: var(--blue) !important;
+  box-shadow: 0 0 0 3px rgba(69,99,245,.12) !important;
+}
+.form-status {
+  color: var(--ink) !important;
+  background: var(--paper-2) !important;
+  border-left: 3px solid var(--blue) !important;
+}
+
+/* CMS-rendered portfolio, About photos, testimonials and announcements. */
+.cms-work-visual, .cms-project-placeholder, .cms-about-photo,
+.about-mark.cms-about-mark { background: #E9EBEF !important; }
+.cms-project-placeholder {
+  color: var(--ink) !important;
+  background: linear-gradient(135deg, #E9EBEF, #F5F6F8) !important;
+}
+.cms-testimonial { background: var(--paper) !important; }
+.cms-announcement {
+  color: var(--ink) !important;
+  background: var(--lime) !important;
+}
+.cms-availability {
+  color: var(--lime) !important;
+  background: rgba(185,231,105,.12) !important;
+  border-color: rgba(185,231,105,.4) !important;
+}
+.cms-social-links a:hover, .footer-col a:hover { color: var(--lime) !important; }

@@ -14,14 +14,12 @@ if (menuToggle && nav) {
     menuToggle.setAttribute('aria-expanded', 'false');
   }));
 }
-
 const siteHeader = document.querySelector('.site-header');
 if (siteHeader) {
   const syncHeader = () => siteHeader.classList.toggle('is-scrolled', window.scrollY > 24);
   syncHeader();
   window.addEventListener('scroll', syncHeader, { passive: true });
 }
-
 const revealItems = document.querySelectorAll('.reveal');
 if ('IntersectionObserver' in window) {
   const observer = new IntersectionObserver(entries => {
@@ -36,7 +34,6 @@ if ('IntersectionObserver' in window) {
 } else {
   revealItems.forEach(item => item.classList.add('is-visible'));
 }
-
 document.querySelectorAll('[data-faq-question]').forEach(button => {
   button.addEventListener('click', () => {
     const item = button.closest('.faq-item');
@@ -46,7 +43,6 @@ document.querySelectorAll('[data-faq-question]').forEach(button => {
     if (answer) answer.style.maxHeight = isOpen ? `${answer.scrollHeight}px` : '0px';
   });
 });
-
 const contactForm = document.querySelector('[data-contact-form]');
 if (contactForm) {
   const honeypot = document.createElement('input');
@@ -57,7 +53,6 @@ if (contactForm) {
   honeypot.setAttribute('aria-hidden','true');
   honeypot.style.cssText = 'position:absolute;left:-10000px;width:1px;height:1px;opacity:0';
   contactForm.appendChild(honeypot);
-
   contactForm.addEventListener('submit', async event => {
     event.preventDefault();
     const status = contactForm.querySelector('[data-form-status]');
@@ -85,7 +80,6 @@ if (contactForm) {
     }
   });
 }
-
 const heroVideo = document.querySelector('.hero-video');
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const saveData = Boolean(navigator.connection && navigator.connection.saveData);
@@ -93,12 +87,18 @@ if (heroVideo && (reduceMotion || saveData)) {
   heroVideo.pause();
   heroVideo.removeAttribute('autoplay');
 }
-
 document.querySelectorAll('[data-current-year]').forEach(node => {
   node.textContent = new Date().getFullYear();
 });
-
 const cmsScript = document.createElement('script');
 cmsScript.src = '/assets/cms-public.js';
 cmsScript.defer = true;
+/* Add the brand layer after CMS CSS so every CMS-rendered section follows it. */
+cmsScript.addEventListener('load', () => {
+  const brandTheme = document.createElement('link');
+  brandTheme.rel = 'stylesheet';
+  brandTheme.href = '/assets/brand-two-color.css';
+  brandTheme.dataset.brandTheme = 'two-colour';
+  document.head.appendChild(brandTheme);
+});
 document.body.appendChild(cmsScript);

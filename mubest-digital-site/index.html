@@ -10,6 +10,7 @@
   <title>Mubest Digital — Digital work that moves business forward</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/assets/site.css">
+  <link rel="stylesheet" href="/assets/hero-carousel.css">
 </head>
 <body data-page="home">
   <header class="site-header">
@@ -24,18 +25,63 @@
   </header>
 
   <main>
-    <section class="hero">
-      <video class="hero-video" autoplay muted loop playsinline preload="metadata" poster="https://images.pexels.com/videos/19197449/4k-video-analog-camera-camcorder-camera-19197449.jpeg?auto=compress&dpr=1&h=750&w=1260" aria-label="Creative digital editing workspace">
-        <source src="https://videos.pexels.com/video-files/19197449/19197449-uhd_3840_2160_30fps.mp4" type="video/mp4">
-      </video>
-      <div class="hero-shade"></div><div class="hero-grid"></div>
-      <div class="hero-content">
-        <div class="hero-kicker"><span class="pulse-dot"></span> Independent digital creative partner</div>
-        <h1 class="display">Digital work that <em>moves</em> your business forward.</h1>
-        <p class="hero-copy">From websites and ecommerce experiences to email marketing and creative content, I help businesses turn good ideas into digital work that works.</p>
-        <div class="hero-actions"><a class="button button-light" href="/portfolio/">Explore my work <span>↗</span></a><a class="button button-outline" href="/contact/">Let's talk about your project <span>↗</span></a></div>
+    <section class="hero hero-carousel" data-hero-carousel aria-label="Featured digital services" tabindex="0">
+      <article class="hero-slide hero-slide--editorial is-active" data-slide-index="0" aria-hidden="false" aria-label="Slide 1 of 3: Digital creative services">
+        <video class="hero-video hero-carousel-video" autoplay muted loop playsinline preload="metadata" poster="https://images.pexels.com/videos/19197449/4k-video-analog-camera-camcorder-camera-19197449.jpeg?auto=compress&dpr=1&h=750&w=1260" aria-hidden="true">
+          <source src="https://videos.pexels.com/video-files/19197449/19197449-uhd_3840_2160_30fps.mp4" type="video/mp4">
+        </video>
+        <div class="hero-shade"></div><div class="hero-grid"></div>
+        <div class="hero-content">
+          <div class="hero-kicker"><span class="pulse-dot"></span> Independent digital creative partner</div>
+          <h1 class="display">Digital work that <em>moves</em> your business forward.</h1>
+          <p class="hero-copy">From websites and ecommerce experiences to email marketing and creative content, I help businesses turn good ideas into digital work that works.</p>
+          <div class="hero-actions"><a class="button button-light" href="/portfolio/">Explore my work <span>↗</span></a><a class="button button-outline" href="/contact/">Let's talk about your project <span>↗</span></a></div>
+        </div>
+      </article>
+
+      <article class="hero-slide hero-slide--split" data-slide-index="1" aria-hidden="true" aria-label="Slide 2 of 3: Email marketing" inert>
+        <video class="hero-carousel-video" muted loop playsinline preload="none" data-src="https://videos.pexels.com/video-files/5725780/5725780-hd_3840_2160_30fps.mp4" poster="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=1920" aria-hidden="true"></video>
+        <div class="hero-shade"></div><div class="hero-grid"></div>
+        <div class="hero-content hero-split-grid">
+          <div class="hero-copy-column">
+            <div class="hero-kicker"><span class="pulse-dot"></span> Klaviyo & customer retention</div>
+            <h2 class="hero-heading">Make every customer relationship <em>count.</em></h2>
+            <p class="hero-copy">Smart email journeys, thoughtful campaigns and customer experiences that turn one-time buyers into people who return.</p>
+            <div class="hero-actions"><a class="button button-light" href="/services/#email">Explore email marketing <span>↗</span></a><a class="button button-outline" href="/contact/">Discuss your goals <span>↗</span></a></div>
+          </div>
+          <div class="hero-spotlight" aria-hidden="true">
+            <span class="hero-spotlight-label">CONNECTED CUSTOMER JOURNEYS</span>
+            <div class="hero-spotlight-card"><span>01</span><strong>Welcome & nurture</strong><small>Make the first impression meaningful</small></div>
+            <div class="hero-spotlight-card"><span>02</span><strong>Recover & retain</strong><small>Give customers a reason to return</small></div>
+            <div class="hero-spotlight-card"><span>03</span><strong>Grow thoughtfully</strong><small>Better experiences, not just more emails</small></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="hero-slide hero-slide--centered" data-slide-index="2" aria-hidden="true" aria-label="Slide 3 of 3: Ecommerce experiences" inert>
+        <video class="hero-carousel-video" muted loop playsinline preload="none" data-src="https://videos.pexels.com/video-files/3129671/3129671-sd_640_360_30fps.mp4" poster="https://images.pexels.com/photos/5632382/pexels-photo-5632382.jpeg?auto=compress&cs=tinysrgb&w=1920" aria-hidden="true"></video>
+        <div class="hero-shade"></div><div class="hero-grid"></div>
+        <div class="hero-content hero-centered-content">
+          <div class="hero-kicker"><span class="pulse-dot"></span> Ecommerce & website experiences</div>
+          <h2 class="hero-heading">Build a better place <em>to buy.</em></h2>
+          <p class="hero-copy">From Shopify and Etsy to smarter product pages, I design online shopping experiences that feel effortless and encourage action.</p>
+          <div class="hero-actions"><a class="button button-light" href="/services/#ecommerce">Explore ecommerce <span>↗</span></a><a class="button button-outline" href="/portfolio/">View selected work <span>↗</span></a></div>
+        </div>
+      </article>
+
+      <div class="hero-carousel-footer">
+        <div class="hero-carousel-caption"><span class="hero-carousel-caption-kicker">MUBEST DIGITAL</span><strong data-hero-current-label>Creative digital solutions</strong></div>
+        <div class="hero-carousel-controls" aria-label="Hero slideshow controls">
+          <button class="hero-carousel-arrow" data-hero-prev type="button" aria-label="Previous slide">←</button>
+          <div class="hero-carousel-indicators" role="group" aria-label="Choose slide">
+            <button type="button" data-hero-dot="0" class="is-active" aria-current="true" aria-label="Go to slide 1"><span class="hero-dot-progress"></span></button>
+            <button type="button" data-hero-dot="1" aria-current="false" aria-label="Go to slide 2"><span class="hero-dot-progress"></span></button>
+            <button type="button" data-hero-dot="2" aria-current="false" aria-label="Go to slide 3"><span class="hero-dot-progress"></span></button>
+          </div>
+          <button class="hero-carousel-arrow" data-hero-next type="button" aria-label="Next slide">→</button>
+          <span class="hero-carousel-count" aria-live="polite"><span data-hero-current>01</span> / 03</span>
+        </div>
       </div>
-      <div class="hero-bottom"><div class="services-inline"><span>Web design</span><span>Email marketing</span><span>Ecommerce</span><span>Creative content</span></div><div class="hero-scroll"><i></i> Scroll to explore</div></div>
     </section>
 
     <div class="marquee" aria-label="Mubest Digital services"><div class="marquee-track"><span>Websites that work</span><span>Marketing that connects</span><span>Creative that stands out</span><span>Ecommerce experiences</span><span>Websites that work</span><span>Marketing that connects</span><span>Creative that stands out</span><span>Ecommerce experiences</span></div></div>
@@ -108,5 +154,6 @@
 
   <footer class="site-footer"><div class="container"><div class="footer-top"><div class="footer-brand"><a class="brand" href="/"><img class="brand-logo" src="/assets/mubest-digital-logo.svg" alt="Mubest Digital"></a><p>Digital work, thoughtfully brought to life. Websites, marketing and creative support for businesses ready to move forward.</p></div><div class="footer-col"><h4>Explore</h4><a href="/about/">About</a><a href="/services/">Services</a><a href="/portfolio/">Portfolio</a><a href="/contact/">Contact</a></div><div class="footer-col"><h4>Start a conversation</h4><a href="/contact/">Tell me about your project ↗</a><a href="/services/">Explore services ↗</a></div></div><div class="footer-bottom"><span>© <span data-current-year>2026</span> Mubest Digital. All rights reserved.</span><span>Built with intention. Designed for what’s next.</span></div></div></footer>
   <script src="/assets/site.js" defer></script>
+  <script src="/assets/hero-carousel.js" defer></script>
 </body>
 </html>
