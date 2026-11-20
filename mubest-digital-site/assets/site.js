@@ -1,16 +1,4 @@
-/* Mubest Digital — small, dependency-free interactions.
-   Add your real enquiry email to CONTACT_EMAIL before launch. */
-const CONTACT_EMAIL = '';
-
-// Keep the site header fixed and strengthen its background after scrolling.
-const siteHeader = document.querySelector('.site-header');
-if (siteHeader) {
-  const syncHeader = () => siteHeader.classList.toggle('is-scrolled', window.scrollY > 24);
-  syncHeader();
-  window.addEventListener('scroll', syncHeader, { passive: true });
-}
-
-
+/* Mubest Digital — public website interactions and CMS bridge. */
 const menuToggle = document.querySelector('[data-menu-toggle]');
 const nav = document.querySelector('[data-site-nav]');
 if (menuToggle && nav) {
@@ -25,6 +13,13 @@ if (menuToggle && nav) {
     document.body.classList.remove('menu-open');
     menuToggle.setAttribute('aria-expanded', 'false');
   }));
+}
+
+const siteHeader = document.querySelector('.site-header');
+if (siteHeader) {
+  const syncHeader = () => siteHeader.classList.toggle('is-scrolled', window.scrollY > 24);
+  syncHeader();
+  window.addEventListener('scroll', syncHeader, { passive: true });
 }
 
 const revealItems = document.querySelectorAll('.reveal');
@@ -42,7 +37,6 @@ if ('IntersectionObserver' in window) {
   revealItems.forEach(item => item.classList.add('is-visible'));
 }
 
-// Accessible FAQ accordion.
 document.querySelectorAll('[data-faq-question]').forEach(button => {
   button.addEventListener('click', () => {
     const item = button.closest('.faq-item');
@@ -53,30 +47,45 @@ document.querySelectorAll('[data-faq-question]').forEach(button => {
   });
 });
 
-// The form opens a pre-filled email draft once CONTACT_EMAIL is configured.
 const contactForm = document.querySelector('[data-contact-form]');
 if (contactForm) {
-  contactForm.addEventListener('submit', event => {
+  const honeypot = document.createElement('input');
+  honeypot.type = 'text';
+  honeypot.name = 'website';
+  honeypot.tabIndex = -1;
+  honeypot.autocomplete = 'off';
+  honeypot.setAttribute('aria-hidden','true');
+  honeypot.style.cssText = 'position:absolute;left:-10000px;width:1px;height:1px;opacity:0';
+  contactForm.appendChild(honeypot);
+
+  contactForm.addEventListener('submit', async event => {
     event.preventDefault();
     const status = contactForm.querySelector('[data-form-status]');
     if (!contactForm.reportValidity()) return;
-    if (!CONTACT_EMAIL) {
-      status.textContent = 'The form is ready. Add your preferred business email in assets/site.js to activate enquiry delivery.';
+    const button = contactForm.querySelector('[type="submit"]');
+    const original = button?.innerHTML;
+    if (button) { button.disabled = true; button.textContent = 'Sending…'; }
+    try {
+      const data = Object.fromEntries(new FormData(contactForm).entries());
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Your enquiry could not be sent.');
+      status.textContent = result.message || 'Thank you. Your enquiry has been received.';
       status.classList.add('show');
-      return;
+      contactForm.reset();
+    } catch (error) {
+      status.textContent = error.message || 'Something went wrong. Please try again.';
+      status.classList.add('show');
+    } finally {
+      if (button) { button.disabled = false; button.innerHTML = original; }
     }
-    const data = new FormData(contactForm);
-    const subject = encodeURIComponent(`Project enquiry: ${data.get('service') || 'New project'}`);
-    const body = encodeURIComponent(
-      `Name: ${data.get('name')}\nEmail: ${data.get('email')}\nService: ${data.get('service')}\nBudget: ${data.get('budget') || 'Not specified'}\n\nProject details:\n${data.get('message')}`
-    );
-    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
-    status.textContent = 'Your email app should open with the enquiry prepared. Review it and send when ready.';
-    status.classList.add('show');
   });
 }
 
-// Respect reduced-motion and data-saving preferences for the hero video.
 const heroVideo = document.querySelector('.hero-video');
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const saveData = Boolean(navigator.connection && navigator.connection.saveData);
@@ -85,7 +94,11 @@ if (heroVideo && (reduceMotion || saveData)) {
   heroVideo.removeAttribute('autoplay');
 }
 
-// Keep the year current without a server.
 document.querySelectorAll('[data-current-year]').forEach(node => {
   node.textContent = new Date().getFullYear();
 });
+
+const cmsScript = document.createElement('script');
+cmsScript.src = '/assets/cms-public.js';
+cmsScript.defer = true;
+document.body.appendChild(cmsScript);
