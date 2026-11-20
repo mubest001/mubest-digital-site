@@ -60,6 +60,7 @@ const schema = [
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   published_at TIMESTAMPTZ
 )`,
+`ALTER TABLE portfolio_projects ADD COLUMN IF NOT EXISTS details JSONB NOT NULL DEFAULT '{}'::jsonb`,
 `CREATE TABLE IF NOT EXISTS services (
   id BIGSERIAL PRIMARY KEY,
   slug TEXT NOT NULL UNIQUE,

@@ -1,0 +1,66 @@
+/* Public page sections managed through Content Studio. Blue and lime brand accents only. */
+.layout-managed{position:relative}
+.layout-managed.layout-center{text-align:center}
+.layout-managed.layout-center .section-head{justify-content:center;align-items:center;flex-direction:column;text-align:center}
+.layout-managed.layout-center .section-head p,.layout-managed.layout-center h1,.layout-managed.layout-center h2,.layout-managed.layout-center .hero-copy{margin-left:auto;margin-right:auto}
+.layout-managed.layout-wide > .container,.layout-managed.layout-wide .hero-content{width:min(1440px,calc(100% - 44px));max-width:none}
+.layout-managed.layout-left .intro-grid > :first-child,.layout-managed.layout-left .about-strip > :first-child{order:0}
+.layout-managed.layout-right .intro-grid > :first-child,.layout-managed.layout-right .about-strip > :first-child{order:2}
+.layout-managed.layout-right .intro-grid > :last-child,.layout-managed.layout-right .about-strip > :last-child{order:1}
+.layout-managed.layout-right .section-head{flex-direction:row-reverse}
+.layout-managed.layout-right .section-head p{text-align:right}
+.layout-managed.layout-center .intro-grid,.layout-managed.layout-center .about-strip{grid-template-columns:1fr;text-align:center}
+.layout-managed.layout-center .intro-copy,.layout-managed.layout-center .about-copy{max-width:780px;margin:auto}
+.layout-custom-section{background:var(--paper,#f5f6f8);color:var(--ink,#17191f)}
+.layout-custom-section:nth-of-type(even){background:var(--white,#fff)}
+.layout-custom-inner{display:grid;gap:32px}
+.layout-heading{max-width:880px}
+.layout-heading h2{margin:13px 0 0;font:600 clamp(2.4rem,5vw,5.2rem)/1.04 Manrope,sans-serif;letter-spacing:-.065em}
+.layout-body{max-width:820px}
+.layout-body p{margin:0 0 17px;font-size:1.05rem;color:#5c626e;white-space:pre-line;line-height:1.8}
+.layout-body .button{margin-top:15px}
+.layout-custom-section.layout-center .layout-heading,.layout-custom-section.layout-center .layout-body{margin-inline:auto;text-align:center}
+.layout-custom-section.layout-center .layout-body{text-align:center}
+.layout-custom-section.layout-right .layout-heading,.layout-custom-section.layout-right .layout-body{margin-left:auto;text-align:right}
+.layout-custom-section.layout-wide .layout-custom-inner{width:min(1440px,calc(100% - 44px))}
+.layout-split{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);align-items:center;gap:clamp(30px,5vw,90px)}
+.layout-custom-section.layout-right .layout-split .layout-visual{order:2}
+.layout-custom-section.layout-center .layout-split{grid-template-columns:1fr}
+.layout-visual{min-height:260px;background:#e9ebef;border-radius:22px;overflow:hidden;display:grid;place-items:center}
+.layout-visual img{display:block;width:100%;height:100%;max-height:480px;object-fit:cover}
+.layout-image-placeholder{display:grid;place-items:center;width:175px;height:175px;border-radius:50%;background:#4563f5;color:#b9e769;font:600 7rem Manrope,sans-serif}
+.layout-review-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.layout-review{background:#fff;border:1px solid rgba(23,25,31,.12);border-radius:18px;padding:27px;min-width:0}
+.layout-review-stars{color:#4563f5;letter-spacing:.14em;font-size:.95rem}
+.layout-review blockquote{margin:18px 0 25px;color:#343d48;line-height:1.75;white-space:pre-line}
+.layout-review strong{display:block}
+.layout-review small{display:block;margin-top:5px;color:#7d8491}
+.layout-faq-list{max-width:960px}
+.layout-custom-section.layout-center .layout-faq-list{margin-inline:auto}
+.layout-faq{border-bottom:1px solid rgba(23,25,31,.18)}
+.layout-faq summary{cursor:pointer;padding:20px 0;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:16px}
+.layout-faq summary::after{content:'+';font-size:1.35rem;color:#4563f5}
+.layout-faq[open] summary::after{content:'−'}
+.layout-faq summary::-webkit-details-marker{display:none}
+.layout-faq p{margin:0 0 20px;color:#68707c}
+.layout-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.layout-stat{padding:30px;border:1px solid #dfe2e7;border-radius:18px;background:#fff}
+.layout-stat strong{display:block;color:#4563f5;font:600 clamp(2.1rem,4vw,3.3rem) Manrope,sans-serif;letter-spacing:-.06em}
+.layout-stat span{display:block;margin-top:7px;color:#5a6470}
+.layout-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.layout-gallery figure{margin:0;overflow:hidden;border-radius:15px;min-height:200px;background:#e9ebef}
+.layout-gallery img{width:100%;height:100%;max-height:430px;object-fit:cover;display:block}
+.layout-cta{background:#4563f5!important;color:#fff!important}
+.layout-cta .eyebrow{color:#b9e769!important}
+.layout-cta .layout-body p{color:#edf0ff}
+.layout-cta .button{color:#17191f;background:#b9e769}
+@media(max-width:900px){.layout-review-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.layout-split{grid-template-columns:1fr}.layout-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.layout-review-grid,.layout-gallery{grid-template-columns:1fr}.layout-heading h2{font-size:clamp(2.3rem,10vw,4rem)}.layout-managed.layout-right .section-head{flex-direction:column}.layout-managed.layout-center .intro-grid{grid-template-columns:1fr}}
+/* Hero copy positioning presets. The three slides retain their own base layouts. */
+.hero-carousel.layout-right .hero-slide--editorial .hero-content{text-align:right}
+.hero-carousel.layout-right .hero-slide--editorial .hero-heading,.hero-carousel.layout-right .hero-slide--editorial .hero-copy{margin-left:auto}
+.hero-carousel.layout-right .hero-slide--editorial .hero-actions{justify-content:flex-end}
+.hero-carousel.layout-center .hero-slide--editorial .hero-content{text-align:center}
+.hero-carousel.layout-center .hero-slide--editorial .hero-heading,.hero-carousel.layout-center .hero-slide--editorial .hero-copy{margin-left:auto;margin-right:auto}
+.hero-carousel.layout-center .hero-slide--editorial .hero-actions{justify-content:center}
+@media(max-width:760px){.hero-carousel.layout-right .hero-slide--editorial .hero-content,.hero-carousel.layout-center .hero-slide--editorial .hero-content{text-align:left}.hero-carousel.layout-right .hero-slide--editorial .hero-actions,.hero-carousel.layout-center .hero-slide--editorial .hero-actions{justify-content:flex-start}}

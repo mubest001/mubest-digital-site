@@ -12,7 +12,7 @@ const PUBLIC_SETTINGS = [
   "show_home_cta","header_cta_label","header_cta_url","nav_home_label",
   "nav_about_label","nav_services_label","nav_portfolio_label","nav_contact_label",
   "announcement_enabled","announcement_text","announcement_link_label","announcement_url",
-  "footer_tagline","footer_note","footer_cta_label"
+  "footer_tagline","footer_note","footer_cta_label","layout_sections"
 ];
 
 export default async function handler(req, res) {
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     const [settingsRows, pageRows, portfolio, services, testimonials, faqs] = await Promise.all([
       query("SELECT key,value FROM site_settings WHERE key = ANY($1::text[])", [PUBLIC_SETTINGS]),
       query("SELECT slug,published FROM site_pages WHERE status='published'"),
-      query("SELECT id,slug,title,category,excerpt,description,cover_image,gallery,project_url,featured,sort_order FROM portfolio_projects WHERE status='published' ORDER BY featured DESC,sort_order ASC,created_at DESC"),
+      query("SELECT id,slug,title,category,excerpt,description,cover_image,gallery,project_url,featured,sort_order,details FROM portfolio_projects WHERE status='published' ORDER BY featured DESC,sort_order ASC,created_at DESC"),
       query("SELECT id,slug,title,summary,description,tag,icon,deliverables,sort_order FROM services WHERE status='published' ORDER BY sort_order ASC,id ASC"),
       query("SELECT id,name,role,company,quote,avatar_url,rating,sort_order FROM testimonials WHERE status='published' ORDER BY sort_order ASC,id DESC"),
       query("SELECT id,question,answer,sort_order FROM faqs WHERE status='published' ORDER BY sort_order ASC,id ASC")

@@ -19,6 +19,7 @@ export const DEFAULT_SETTINGS = {
   color_paper: "#f5f3ee",
   font_heading: "Manrope",
   font_body: "Inter",
+  layout_sections: {},
   hero_video_enabled: true,
   hero_video_url: "",
   hero_poster_url: "",

@@ -18,6 +18,45 @@ const text = (v, max = 6000) => String(v ?? "").trim().slice(0, max);
 const number = (v, fallback = 0) => Number.isFinite(Number(v)) ? Number(v) : fallback;
 const bool = v => v === true || v === "true" || v === "on" || v === 1;
 const array = v => Array.isArray(v) ? v : String(v || "").split(/\r?\n|,/).map(x => x.trim()).filter(Boolean);
+const cleanDetails = src => {
+  const input = src && typeof src === "object" && !Array.isArray(src) ? src : {};
+  const result = {};
+  for (const key of ["role","project_type","year","duration","services_used","skills_used","deliverables","challenge","goals","approach","solution","outcomes","client_feedback"]) {
+    const v = input[key];
+    if (["services_used","skills_used","deliverables"].includes(key)) result[key] = array(v).slice(0,24).map(x => text(x,150));
+    else result[key] = text(v, key === "year" ? 20 : 7000);
+  }
+  return result;
+};
+const PAGE_NAMES = ["home","about","services","portfolio","contact"];
+const SECTION_KINDS = new Set(["builtin","text","image_text","reviews","faq","stats","cta","gallery"]);
+function sanitizeLayouts(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Invalid layout data.");
+  const result = {};
+  for (const page of PAGE_NAMES) {
+    if (!Object.hasOwn(value,page)) continue;
+    if (!Array.isArray(value[page]) || value[page].length > 30) throw new Error("Maximum 30 sections per page.");
+    const ids = new Set();
+    result[page] = value[page].map(entry => {
+      if (!entry || typeof entry !== "object") throw new Error("Invalid section item.");
+      const kind = text(entry.kind,20);
+      if (!SECTION_KINDS.has(kind)) throw new Error("Unsupported section type.");
+      const id = text(entry.id,70).replace(/[^a-zA-Z0-9_-]/g, "");
+      if (!id || ids.has(id)) throw new Error("Section IDs must be unique.");
+      ids.add(id);
+      return {
+        id, kind,
+        visible: entry.visible !== false,
+        layout: ["default","left","right","center","wide"].includes(entry.layout) ? entry.layout : "default",
+        title: text(entry.title,240), kicker: text(entry.kicker,110),
+        body: text(entry.body,5500), image_url: text(entry.image_url,2000),
+        button_label: text(entry.button_label,120), button_url: text(entry.button_url,2000),
+        items: text(entry.items,3500),
+      };
+    });
+  }
+  return result;
+}
 const slugify = v => text(v, 180).toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
 
 async function getResource(resource) {
@@ -68,7 +107,7 @@ async function saveRecord(resource, data, admin) {
       text(data.slug,180) || slugify(data.title), text(data.title,180), text(data.category,180),
       text(data.excerpt,500), text(data.description,10000), text(data.cover_image,2000),
       JSON.stringify(array(data.gallery)), text(data.project_url,2000), bool(data.featured),
-      number(data.sort_order), status
+      number(data.sort_order), status, JSON.stringify(cleanDetails(data.details))
     ];
     if (!fields[0] || !fields[1]) throw new Error("Project title and slug are required.");
     if (id) {
@@ -76,13 +115,13 @@ async function saveRecord(resource, data, admin) {
       if (!old) throw new Error("Project not found.");
       await revision(admin.user_id,resource,id,old);
       [row] = await query(
-        `UPDATE portfolio_projects SET slug=$1,title=$2,category=$3,excerpt=$4,description=$5,cover_image=$6,gallery=$7::jsonb,project_url=$8,featured=$9,sort_order=$10,status=$11,updated_at=NOW(),published_at=CASE WHEN $11='published' THEN COALESCE(published_at,NOW()) ELSE published_at END WHERE id=$12 RETURNING *`,
+        `UPDATE portfolio_projects SET slug=$1,title=$2,category=$3,excerpt=$4,description=$5,cover_image=$6,gallery=$7::jsonb,project_url=$8,featured=$9,sort_order=$10,status=$11,details=$12::jsonb,updated_at=NOW(),published_at=CASE WHEN $11='published' THEN COALESCE(published_at,NOW()) ELSE published_at END WHERE id=$13 RETURNING *`,
         [...fields,id]
       );
     } else {
       [row] = await query(
-        `INSERT INTO portfolio_projects (slug,title,category,excerpt,description,cover_image,gallery,project_url,featured,sort_order,status,published_at)
-         VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,$10,$11,CASE WHEN $11='published' THEN NOW() ELSE NULL END) RETURNING *`,
+        `INSERT INTO portfolio_projects (slug,title,category,excerpt,description,cover_image,gallery,project_url,featured,sort_order,status,details,published_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,$10,$11,$12::jsonb,CASE WHEN $11='published' THEN NOW() ELSE NULL END) RETURNING *`,
         fields
       );
     }
@@ -188,15 +227,16 @@ async function saveSettings(data, admin) {
     "show_home_cta","header_cta_label","header_cta_url","nav_home_label",
     "nav_about_label","nav_services_label","nav_portfolio_label","nav_contact_label",
     "announcement_enabled","announcement_text","announcement_link_label","announcement_url",
-    "footer_tagline","footer_note","footer_cta_label"
+    "footer_tagline","footer_note","footer_cta_label","layout_sections"
   ]);
   for (const [key,value] of Object.entries(data || {})) {
     if (!allowed.has(key)) continue;
     const [old] = await query("SELECT value FROM site_settings WHERE key=$1",[key]);
     if (old) await revision(admin.user_id,"settings",key,{key,value:old.value});
+    const safeValue = key === "layout_sections" ? sanitizeLayouts(value) : value;
     await query(
       "INSERT INTO site_settings (key,value) VALUES ($1,$2::jsonb) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",
-      [key,JSON.stringify(value)]
+      [key,JSON.stringify(safeValue)]
     );
   }
   await audit(admin.user_id,"updated","settings","global","Updated website settings.");
@@ -224,6 +264,7 @@ async function restoreRevision(id, admin) {
        ON CONFLICT (id) DO UPDATE SET slug=EXCLUDED.slug,title=EXCLUDED.title,category=EXCLUDED.category,excerpt=EXCLUDED.excerpt,description=EXCLUDED.description,cover_image=EXCLUDED.cover_image,gallery=EXCLUDED.gallery,project_url=EXCLUDED.project_url,featured=EXCLUDED.featured,sort_order=EXCLUDED.sort_order,status=EXCLUDED.status,updated_at=NOW(),published_at=EXCLUDED.published_at`,
       [Number(rev.entity_id),snap.slug,snap.title,snap.category,snap.excerpt,snap.description,snap.cover_image,JSON.stringify(snap.gallery || []),snap.project_url,snap.featured,snap.sort_order,snap.status,snap.created_at,snap.published_at]
     );
+    await query("UPDATE portfolio_projects SET details=$1::jsonb WHERE id=$2",[JSON.stringify(snap.details || {}),Number(rev.entity_id)]);
   } else if (entity === "services") {
     await query(
       `INSERT INTO services (id,slug,title,summary,description,tag,icon,deliverables,sort_order,status,created_at,updated_at)

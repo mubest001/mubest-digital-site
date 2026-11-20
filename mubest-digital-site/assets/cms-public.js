@@ -50,7 +50,7 @@
     ]));
 
     container.innerHTML = list.map(item => {
-      const url = safeUrl(item.project_url);
+      const detailUrl = "/portfolio/project/?slug=" + encodeURIComponent(String(item.slug||""));
       const existing = oldByTitle.get(String(item.title || "").trim().toLowerCase());
 
       if (!safeUrl(item.cover_image) && existing) {
@@ -62,11 +62,10 @@
         if (title) title.textContent = item.title || "";
         if (excerpt) excerpt.textContent = item.excerpt || item.description || "";
         clone.querySelectorAll("a").forEach(a => {
-          if (url) {
-            a.href = url;
-            a.target = "_blank";
-            a.rel = "noopener noreferrer";
-          }
+          a.href = detailUrl;
+          a.removeAttribute("target");
+          a.removeAttribute("rel");
+          a.setAttribute("aria-label",`Read ${item.title || "project"} case study`);
         });
         return clone.outerHTML;
       }
@@ -74,9 +73,7 @@
       const visual = safeUrl(item.cover_image)
         ? `<img src="${esc(safeUrl(item.cover_image))}" alt="${esc(item.title)} project preview" loading="lazy">`
         : `<div class="cms-project-placeholder"><span>${esc((item.title || "M").split(/\s+/).map(x=>x[0]).join("").slice(0,3).toUpperCase())}</span></div>`;
-      const linkStart = url ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" aria-label="View ${esc(item.title)} website">` : `<div>`;
-      const linkEnd = url ? `</a>` : `</div>`;
-      return `<article class="work-card reveal cms-work-card">${linkStart}<div class="work-visual cms-work-visual">${visual}</div>${linkEnd}<div class="work-info"><div><small>${esc(item.category || "Selected project")}</small><h3>${esc(item.title)}</h3><p>${esc(item.excerpt || item.description || "")}</p></div>${url ? `<a class="work-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer" aria-label="Open ${esc(item.title)}">↗</a>` : ""}</div></article>`;
+      return `<article class="work-card reveal cms-work-card"><a href="${esc(detailUrl)}" aria-label="Read ${esc(item.title)} case study"><div class="work-visual cms-work-visual">${visual}</div></a><div class="work-info"><div><small>${esc(item.category || "Selected project")}</small><h3><a href="${esc(detailUrl)}">${esc(item.title)}</a></h3><p>${esc(item.excerpt || item.description || "")}</p></div><a class="work-link" href="${esc(detailUrl)}" aria-label="Read ${esc(item.title)} case study">↗</a></div></article>`;
     }).join("");
     container.querySelectorAll(".reveal").forEach(el => el.classList.add("is-visible"));
   }
@@ -299,6 +296,17 @@
         if(el&&[".about-strip",".faq-list"].includes(selector))el=el.closest("section");
         if(el)el.style.display="none";
       });
+    }
+    // Section layouts are optional; keep the original page when no layout was published.
+    if(settings.layout_sections && Array.isArray(settings.layout_sections[pageKey])) {
+      const style = document.createElement("link");
+      style.rel="stylesheet";
+      style.href="/assets/section-layout.css";
+      document.head.appendChild(style);
+      try {
+        const layoutModule = await import("/assets/section-layout.js");
+        layoutModule.applyLayout(settings.layout_sections,pageKey,data);
+      } catch(error) { console.warn("Section layout could not be applied:",error); }
     }
     setText(".site-footer .footer-brand p",settings.footer_tagline);
     setText(".site-footer .footer-bottom > span:last-child",settings.footer_note);

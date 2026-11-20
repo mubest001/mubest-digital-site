@@ -11,8 +11,8 @@
   const safeUrl=value=>{const v=String(value||'').trim();return /^https?:\/\//i.test(v)||(/^\/(?!\/)/.test(v))?v:'';};
   const toast=(message,error=false)=>{const el=$('#toast');if(!el)return;el.textContent=message;el.className='toast show'+(error?' error':'');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.className='toast',4000);};
   const state={view:'overview',data:{},page:'home',pageRows:[],filter:'all',search:'',media:[],editorResource:null,editorItem:null,mediaTarget:null,settings:{}};
-  const titles={overview:'Overview',leads:'Enquiries',pages:'Pages',portfolio:'Portfolio',services:'Services',testimonials:'Testimonials',faqs:'FAQs',media:'Media library',branding:'Brand identity',homepage:'Homepage & hero',navigation:'Header & footer',seo:'SEO & sharing',contactsettings:'Contact & social',activity:'Activity & revisions'};
-  const settingsViews=['branding','homepage','navigation','seo','contactsettings'];
+  const titles={overview:'Overview',leads:'Enquiries',pages:'Pages',portfolio:'Portfolio',services:'Services',testimonials:'Testimonials',faqs:'FAQs',media:'Media library',branding:'Brand identity',homepage:'Homepage & hero',navigation:'Header & footer',seo:'SEO & sharing',contactsettings:'Contact & social',activity:'Activity & revisions',layout:'Visual layout builder'};
+  const settingsViews=['branding','homepage','navigation','seo','contactsettings','layout'];
   const pageUrl={home:'/',about:'/about/',services:'/services/',portfolio:'/portfolio/',contact:'/contact/'};
 
   const pageGroups={
@@ -40,7 +40,7 @@
   Object.keys(pageGroups).forEach(page=>pageGroups[page].push({title:'Page SEO',description:'Control how this page appears in search results.',fields:[['seo_title','SEO page title'],['seo_description','Meta description','textarea']]}));
 
   const recordFields={
-    portfolio:[['title','Project title'],['slug','Project URL slug'],['category','Industry / platform'],['excerpt','Short summary','textarea'],['description','Full case-study description','textarea'],['cover_image','Cover image','image'],['gallery','Gallery images (one URL per line)','textarea'],['project_url','Project website URL','url'],['featured','Feature on homepage','checkbox'],['sort_order','Display order','number'],['status','Publication status','select',['draft','published','archived']]],
+    portfolio:[['title','Project title'],['slug','Project URL slug'],['category','Industry / platform'],['excerpt','Short summary','textarea'],['description','Project overview','textarea'],['role','Your role / contribution'],['project_type','Project type'],['year','Year (optional)'],['duration','Duration (optional)'],['services_used','Services provided (one per line)','textarea'],['skills_used','Skills / tools used (one per line)','textarea'],['deliverables','Deliverables (one per line)','textarea'],['challenge','Client challenge','textarea'],['goals','Goals','textarea'],['approach','Approach & process','textarea'],['solution','Work delivered','textarea'],['outcomes','Outcomes / results (only verified facts)','textarea'],['client_feedback','Client feedback (with permission)','textarea'],['cover_image','Cover image','image'],['gallery','Gallery images (one URL per line)','textarea'],['project_url','Optional live project URL','url'],['featured','Feature on homepage','checkbox'],['sort_order','Display order','number'],['status','Publication status','select',['draft','published','archived']]],
     services:[['title','Service name'],['slug','Anchor / URL slug'],['summary','Service card summary','textarea'],['description','Full service details','textarea'],['tag','Keywords / service tags'],['icon','Service category icon','select',['website','email','video','ecommerce','book','ads']],['deliverables','Included deliverables (one per line)','textarea'],['sort_order','Display order','number'],['status','Publication status','select',['draft','published','archived']]],
     testimonials:[['name','Client name'],['role','Job title'],['company','Company / business'],['quote','Client feedback','textarea'],['avatar_url','Portrait image','image'],['rating','Rating (1–5)','number'],['sort_order','Display order','number'],['status','Publication status','select',['draft','published','archived']]],
     faqs:[['question','Question','textarea'],['answer','Answer','textarea'],['sort_order','Display order','number'],['status','Publication status','select',['draft','published','archived']]]
@@ -146,6 +146,7 @@
     if(state.view==='overview')return renderOverview(panel,state.data);
     if(['portfolio','services','testimonials','faqs'].includes(state.view))return renderCollection(panel,state.view,state.data);
     if(state.view==='pages')return renderPages(panel,state.data);
+    if(state.view==='layout')return renderLayoutBuilder(panel);
     if(settingsViews.includes(state.view))return renderSettings(panel,state.data,state.view);
     if(state.view==='media')return renderMedia(panel,state.data);
     if(state.view==='leads')return renderLeads(panel,state.data);
@@ -195,7 +196,7 @@
         const sub=item.category||item.company||item.slug||item.role||'';
         const detail=item.excerpt||item.summary||item.quote||item.answer||'';
         const thumb=resource==='portfolio'?`<span class="project-row-thumb">${safeUrl(item.cover_image)?`<img src="${esc(safeUrl(item.cover_image))}" alt="" loading="lazy">`:esc(String(title||'M')[0])}</span>`:'';
-        return `<tr><td><div class="content-identity">${thumb}<span><span class="table-title">${esc(short(title))}</span><span class="table-sub">${esc(short(sub))}</span></span></div></td><td><span class="table-sub">${esc(String(detail).slice(0,130))}</span></td><td>${statusPill(item.status)}</td><td>${esc(item.sort_order??'—')}</td><td><div class="row-actions"><button class="text-button" data-edit="${item.id}">${icon('edit')} Edit</button><button class="text-button delete" data-delete="${item.id}">Delete</button></div></td></tr>`;
+        return `<tr><td><div class="content-identity">${thumb}<span><span class="table-title">${esc(short(title))}</span><span class="table-sub">${esc(short(sub))}</span></span></div></td><td><span class="table-sub">${esc(String(detail).slice(0,130))}</span></td><td>${statusPill(item.status)}</td><td>${esc(item.sort_order??'—')}</td><td><div class="row-actions">${resource==='portfolio'?`<a class="text-button" href="/portfolio/project/?slug=${encodeURIComponent(item.slug||'')}" target="_blank" rel="noopener noreferrer">View case study ↗</a>`:''}<button class="text-button" data-edit="${item.id}">${icon('edit')} Edit</button><button class="text-button delete" data-delete="${item.id}">Delete</button></div></td></tr>`;
       }).join('')}</tbody></table></div>`:`<div class="empty-state">Nothing matches your search or status filter.</div>`;
       $$('[data-edit]',panel).forEach(b=>b.addEventListener('click',()=>openEditor(resource,list.find(x=>String(x.id)===b.dataset.edit))));
       $$('[data-delete]',panel).forEach(b=>b.addEventListener('click',()=>deleteItem(resource,b.dataset.delete)));
@@ -216,7 +217,7 @@
     const fields=recordFields[resource];if(!fields){toast('This content type is not editable here.',true);return;}
     state.editorResource=resource;state.editorItem=item;
     $('#editorTitle').textContent=(item?'Edit ':'Add ')+({portfolio:'portfolio project',services:'service',testimonials:'testimonial',faqs:'FAQ'}[resource]);
-    $('#editorFields').innerHTML=`<div class="editor-grid">${fields.map(f=>fieldHtml(f,item?.[f[0]])).join('')}</div>`;
+    $('#editorFields').innerHTML=`<div class="editor-grid">${fields.map(f=>fieldHtml(f,item?.[f[0]]??item?.details?.[f[0]])).join('')}</div>`;
     const form=$('#editorForm');form.dataset.resource=resource;form.dataset.id=item?.id||'';
     $$('[data-pick-image]',form).forEach(b=>b.addEventListener('click',()=>openMediaPicker(b.dataset.pickImage,form)));
     const title=form.elements.title,slug=form.elements.slug;
@@ -226,7 +227,11 @@
   $('#editorForm').addEventListener('submit',async e=>{
     e.preventDefault();const form=e.currentTarget,resource=form.dataset.resource,fields=recordFields[resource];
     const data={id:form.dataset.id||undefined};
-    fields.forEach(f=>{const [key,,type='text']=f,el=form.elements[key];if(!el)return;data[key]=type==='checkbox'?el.checked:type==='number'?Number(el.value||0):['gallery','deliverables'].includes(key)?el.value.split(/\r?\n/).map(v=>v.trim()).filter(Boolean):el.value;});
+    fields.forEach(f=>{const [key,,type='text']=f,el=form.elements[key];if(!el)return;data[key]=type==='checkbox'?el.checked:type==='number'?Number(el.value||0):['gallery','deliverables','services_used','skills_used'].includes(key)?el.value.split(/\r?\n/).map(v=>v.trim()).filter(Boolean):el.value;});
+    if(resource==='portfolio'){
+      const extra=['role','project_type','year','duration','services_used','skills_used','deliverables','challenge','goals','approach','solution','outcomes','client_feedback'];
+      data.details=Object.fromEntries(extra.map(k=>[k,data[k]]));extra.forEach(k=>delete data[k]);
+    }
     const button=form.querySelector('[type="submit"]');button.disabled=true;
     try{await post(resource,'save',{data});$('#editorDialog').close();toast('Saved successfully.');if(state.view===resource)await loadView(resource);else await loadView('overview');}
     catch(error){toast(error.message,true);}finally{button.disabled=false;}
@@ -263,6 +268,114 @@
 
   // Checkbox fields are always included, even when unchecked, so hiding a
   // section is actually saved as false rather than silently skipped.
+  // The Visual Layout Builder publishes a structured page layout to Neon.
+  // Native drag/drop is complemented by arrow buttons for touch and keyboard access.
+  const BUILTIN_LAYOUTS = {
+    home:[['home_hero','Three-video hero'],['home_marquee','Services ticker'],['home_intro','Introduction'],['home_services','Services'],['home_portfolio','Featured work'],['home_process','How I work'],['home_about','About preview'],['home_faq','FAQs'],['home_reviews','Client reviews'],['home_cta','Final call-to-action']],
+    about:[['about_hero','Page header'],['about_story','Story & introduction'],['about_values','Values'],['about_process','Process'],['about_cta','Contact call-to-action']],
+    services:[['services_hero','Page header'],['services_list','Service list'],['services_cta','Contact call-to-action']],
+    portfolio:[['portfolio_hero','Page header'],['portfolio_grid','Portfolio cards'],['portfolio_cta','Contact call-to-action']],
+    contact:[['contact_hero','Page header'],['contact_form','Contact form'],['contact_cta','Final call-to-action']]
+  };
+  const SECTION_TYPES={text:'Text section',image_text:'Image & text',reviews:'Client reviews',faq:'FAQs',stats:'Highlights / figures',cta:'Call-to-action',gallery:'Image gallery'};
+  const DEFAULT_SECTIONS={
+    text:{title:'New section',kicker:'More about my work',body:''},
+    image_text:{title:'Your section headline',kicker:'A closer look',body:'',image_url:''},
+    reviews:{title:'Words from clients',kicker:'Testimonials'},
+    faq:{title:'Frequently asked questions',kicker:'Helpful answers'},
+    stats:{title:'The details that matter',kicker:'Highlights',items:''},
+    cta:{title:'Ready to start?',kicker:'Let’s talk',button_label:'Start a project',button_url:'/contact/'},
+    gallery:{title:'Project gallery',kicker:'A closer look',items:''}
+  };
+  let builderPage='home';
+  let builderDraft={};
+  let builderEditing=null;
+  function layoutItemsForPage(page){
+    if(!builderDraft[page]){
+      const saved=state.settings?.layout_sections?.[page];
+      builderDraft[page]=(Array.isArray(saved)?saved:BUILTIN_LAYOUTS[page].map(([id,title])=>({id,kind:'builtin',title,visible:true,layout:'default'}))).map(x=>({...x}));
+    }
+    return builderDraft[page];
+  }
+  function layoutField(item,key){return esc(String(item[key]??''));}
+  function renderLayoutBuilder(panel){
+    const items=layoutItemsForPage(builderPage);
+    const name=displayName(builderPage);
+    panel.innerHTML=heading('Visual layout builder','Drag, move, hide and add website sections. Save changes to publish the new layout without a deployment.',`<a class="admin-button ghost" href="${pageUrl[builderPage]}" target="_blank" rel="noopener noreferrer">${icon('eye')} View live page</a>`)+
+      `<div class="builder-banner"><strong>Design freedom, without touching code.</strong><p>Move whole website sections and choose their layout. Add content, real client reviews, FAQs, image sections or calls to action. Your main navigation and footer remain safely fixed.</p></div>`+
+      `<div class="page-tabs">${Object.keys(BUILTIN_LAYOUTS).map(p=>`<button type="button" class="page-tab ${p===builderPage?'active':''}" data-layout-page="${p}">${displayName(p)}</button>`).join('')}</div>`+
+      `<div class="builder-toolbar"><div><h3>${esc(name)} page sections</h3><p>Drag by the handle or use the arrows. Edit a section to change its arrangement and content.</p></div><div class="builder-actions"><select id="builderKind" aria-label="Choose section type">${Object.entries(SECTION_TYPES).map(([key,label])=>`<option value="${key}">${esc(label)}</option>`).join('')}</select><button class="admin-button ghost" id="builderAdd">${icon('plus')} Add section</button></div></div>`+
+      `<div class="builder-list" id="builderList" aria-label="Reorder website sections">${items.map((item,index)=>{
+        const builtin=item.kind==='builtin'; const editing=builderEditing===item.id;
+        return `<article class="builder-row ${editing?'is-editing':''} ${item.visible===false?'is-hidden':''}" data-builder-id="${esc(item.id)}" draggable="true"><div class="builder-row-header"><span class="builder-grip" aria-hidden="true" title="Drag section">⠿</span><span class="builder-index">${String(index+1).padStart(2,'0')}</span><div class="builder-row-copy"><strong>${esc(item.title||SECTION_TYPES[item.kind]||'Section')}</strong><small>${builtin?'Existing website section':SECTION_TYPES[item.kind]||'Custom section'} · ${item.visible===false?'Hidden':'Visible'} · ${esc(item.layout||'default')} layout</small></div><label class="builder-switch"><input type="checkbox" data-builder-field="visible" ${item.visible!==false?'checked':''}><span>Show</span></label><div class="builder-row-actions"><button type="button" data-builder-shift="-1" aria-label="Move section up" ${index===0?'disabled':''}>↑</button><button type="button" data-builder-shift="1" aria-label="Move section down" ${index===items.length-1?'disabled':''}>↓</button><button type="button" data-builder-edit aria-expanded="${editing}">${editing?'Close':'Edit'}</button>${builtin?'':`<button type="button" class="builder-danger" data-builder-remove aria-label="Remove this section">×</button>`}</div></div>`+
+        (editing?`<div class="builder-edit-grid"><label>Position and alignment<select data-builder-field="layout">${['default','left','right','center','wide'].map(x=>`<option value="${x}" ${(item.layout||'default')===x?'selected':''}>${displayName(x)}</option>`).join('')}</select></label>`+
+        (builtin?`<p class="builder-hint">Edit this section’s content in <strong>Pages</strong> or its relevant dashboard section. Change its position, alignment or visibility here.</p>`:
+        `<label>Small heading<input data-builder-field="kicker" value="${layoutField(item,'kicker')}" placeholder="Section eyebrow"></label><label class="builder-full">Section heading<input data-builder-field="title" value="${layoutField(item,'title')}" placeholder="A compelling heading"></label><label class="builder-full">Body text<textarea data-builder-field="body" rows="4" placeholder="Tell your story clearly">${layoutField(item,'body')}</textarea></label>`+
+        (['image_text','gallery'].includes(item.kind)?`<label class="builder-full">${item.kind==='gallery'?'Use the list below for image URLs':'Image URL'}<input data-builder-field="image_url" value="${layoutField(item,'image_url')}" placeholder="https://... or /assets/..."></label>`:'')+
+        (['stats','gallery'].includes(item.kind)?`<label class="builder-full">${item.kind==='stats'?'One highlight per line: Value | Label':'One image URL per line'}<textarea data-builder-field="items" rows="5">${layoutField(item,'items')}</textarea></label>`:'')+
+        (['cta','image_text','text'].includes(item.kind)?`<label>Button label (optional)<input data-builder-field="button_label" value="${layoutField(item,'button_label')}" placeholder="Learn more"></label><label>Button URL (optional)<input data-builder-field="button_url" value="${layoutField(item,'button_url')}" placeholder="/contact/"></label>`:'')+
+        (['reviews','faq'].includes(item.kind)?`<p class="builder-hint">This section automatically uses <strong>${item.kind==='reviews'?'published Testimonials':'published FAQs'}</strong> from your dashboard. Add real content there before publishing.</p>`:''))+
+        `</div>`:'')+`</article>`;
+      }).join('')}</div>`+
+      `<div class="builder-footer"><div><strong>${items.filter(x=>x.visible!==false).length} visible</strong><p>Your changes remain private until you publish this page layout.</p></div><button class="admin-button ghost" id="builderReset">Reset this page</button><button class="admin-button primary" id="builderSave">${icon('check')} Publish layout</button></div>`;
+    $$('[data-layout-page]',panel).forEach(b=>b.addEventListener('click',()=>{builderPage=b.dataset.layoutPage;builderEditing=null;renderLayoutBuilder(panel);}));
+    $('#builderAdd',panel).addEventListener('click',()=>{
+      const kind=$('#builderKind',panel).value;
+      const id=`custom_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,6)}`;
+      const item={id,kind,layout:'default',visible:true,...(DEFAULT_SECTIONS[kind]||{})};
+      layoutItemsForPage(builderPage).push(item);builderEditing=id;renderLayoutBuilder(panel);
+    });
+    $('#builderReset',panel).addEventListener('click',()=>{
+      if(!confirm('Reset this page arrangement to the original sections? This clears unsaved custom sections on this page.'))return;
+      builderDraft[builderPage]=BUILTIN_LAYOUTS[builderPage].map(([id,title])=>({id,title,kind:'builtin',visible:true,layout:'default'}));
+      builderEditing=null;renderLayoutBuilder(panel);
+    });
+    $('#builderSave',panel).addEventListener('click',async e=>{
+      const button=e.currentTarget;button.disabled=true;
+      try{
+        const updated={...(state.settings.layout_sections||{})};
+        Object.entries(builderDraft).forEach(([page,rows])=>updated[page]=rows);
+        await post('settings','save',{data:{layout_sections:updated}});
+        state.settings.layout_sections=updated;
+        toast('Page layout published. Refresh the website to see the changes.');
+      }catch(error){toast(error.message,true);}finally{button.disabled=false;}
+    });
+    $$('.builder-row',panel).forEach(row=>{
+      const id=row.dataset.builderId;
+      row.querySelector('[data-builder-edit]').addEventListener('click',()=>{builderEditing=builderEditing===id?null:id;renderLayoutBuilder(panel);});
+      row.querySelector('[data-builder-remove]')?.addEventListener('click',()=>{
+        if(!confirm('Remove this custom section from the page layout?'))return;
+        builderDraft[builderPage]=layoutItemsForPage(builderPage).filter(x=>x.id!==id);
+        if(builderEditing===id)builderEditing=null;
+        renderLayoutBuilder(panel);
+      });
+      row.querySelectorAll('[data-builder-shift]').forEach(b=>b.addEventListener('click',()=>{
+        const list=layoutItemsForPage(builderPage);const i=list.findIndex(x=>x.id===id);const j=i+Number(b.dataset.builderShift);
+        if(i<0||j<0||j>=list.length)return;
+        [list[i],list[j]]=[list[j],list[i]];renderLayoutBuilder(panel);
+      }));
+      row.querySelectorAll('[data-builder-field]').forEach(input=>input.addEventListener('input',()=>{
+        const item=layoutItemsForPage(builderPage).find(x=>x.id===id);if(!item)return;
+        item[input.dataset.builderField]=input.type==='checkbox'?input.checked:input.value;
+        if(input.type==='checkbox')row.classList.toggle('is-hidden',!input.checked);
+      }));
+      row.addEventListener('dragstart',event=>{
+        if(event.target.closest('input,textarea,select,button')){event.preventDefault();return;}
+        event.dataTransfer.setData('text/plain',id);event.dataTransfer.effectAllowed='move';row.classList.add('dragging');
+      });
+      row.addEventListener('dragend',()=>row.classList.remove('dragging'));
+      row.addEventListener('dragover',event=>{event.preventDefault();event.dataTransfer.dropEffect='move';row.classList.add('drag-over');});
+      row.addEventListener('dragleave',()=>row.classList.remove('drag-over'));
+      row.addEventListener('drop',event=>{
+        event.preventDefault();row.classList.remove('drag-over');
+        const from=event.dataTransfer.getData('text/plain');const to=id;if(!from||from===to)return;
+        const list=layoutItemsForPage(builderPage);const i=list.findIndex(x=>x.id===from),j=list.findIndex(x=>x.id===to);
+        if(i<0||j<0)return;
+        list.splice(j,0,list.splice(i,1)[0]);renderLayoutBuilder(panel);
+      });
+    });
+  }
+
   function renderSettings(panel,settings,view){
     const config=settingGroups[view];
     panel.innerHTML=heading(titles[view],config.intro,`<a class="admin-button ghost" href="/" target="_blank" rel="noopener noreferrer">${icon('eye')} Open website</a>`)+
