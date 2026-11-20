@@ -1,9 +1,18 @@
 import { ensureSchema, query } from "../lib/db.js";
 
 const PUBLIC_SETTINGS = [
-  "site_name","logo_url","favicon_url","about_image_url","contact_email","phone","whatsapp","location",
-  "seo_title","seo_description","social_instagram","social_linkedin","social_facebook","social_tiktok",
-  "color_ink","color_blue","color_lime","color_paper","font_heading","font_body"
+  "site_name","logo_url","favicon_url","about_image_url",
+  "contact_email","phone","whatsapp","location",
+  "seo_title","seo_description","seo_image_url","social_instagram",
+  "social_linkedin","social_facebook","social_tiktok","color_ink",
+  "color_blue","color_lime","color_paper","font_heading",
+  "font_body","hero_video_enabled","hero_video_url","hero_poster_url",
+  "availability_enabled","availability_text","show_home_services","show_home_work",
+  "show_home_process","show_home_about","show_home_faq","show_home_testimonials",
+  "show_home_cta","header_cta_label","header_cta_url","nav_home_label",
+  "nav_about_label","nav_services_label","nav_portfolio_label","nav_contact_label",
+  "announcement_enabled","announcement_text","announcement_link_label","announcement_url",
+  "footer_tagline","footer_note","footer_cta_label"
 ];
 
 export default async function handler(req, res) {
