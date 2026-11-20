@@ -1,0 +1,42 @@
+/*
+ * Mubest Digital admin display correction.
+ * Ensure the HTML hidden attribute wins over component display rules.
+ */
+[hidden] {
+  display: none !important;
+}
+
+/* Use the existing official Mubest Digital logo asset. */
+.auth-brand,
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-width: 0;
+}
+
+.admin-brand-logo {
+  display: block;
+  width: 205px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.auth-brand .admin-brand-logo {
+  width: 205px;
+}
+
+.sidebar-brand .admin-brand-logo {
+  width: 170px;
+}
+
+@media (max-width: 760px) {
+  .auth-brand .admin-brand-logo {
+    width: 195px;
+  }
+  .sidebar-brand .admin-brand-logo {
+    width: 170px;
+  }
+}

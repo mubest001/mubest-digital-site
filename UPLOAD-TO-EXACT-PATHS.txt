@@ -1,0 +1,23 @@
+CORRECT DESTINATION — READ BEFORE UPLOADING
+
+This ZIP is intentionally structured with the nested website folder included.
+
+In GitHub repository:
+https://github.com/mubest001/mubest-digital-site
+
+Replace:
+mubest-digital-site/admin/index.html
+
+Add:
+mubest-digital-site/assets/cms-admin-overrides.css
+
+Do NOT place these files at repository-root paths:
+admin/index.html
+assets/cms-admin-overrides.css
+
+The earlier package updated those repository-root paths, but the nested
+mubest-digital-site copy still had the old admin HTML and CSS.
+
+After committing the two correct paths to main, wait for Vercel's deployment
+to become Ready, then open /admin/ in a private/incognito window or hard-refresh
+with Ctrl+Shift+R.
