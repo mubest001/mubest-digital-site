@@ -29,8 +29,11 @@ async function getResource(resource) {
       query("SELECT COUNT(*)::int AS count FROM portfolio_projects WHERE status='draft'"),
       query("SELECT COUNT(*)::int AS count FROM media_assets")
     ]);
-    const recent = await query("SELECT id,name,email,service,status,created_at FROM leads ORDER BY created_at DESC LIMIT 6");
-    return { counts:{portfolio:p[0].count,services:s[0].count,new_leads:l[0].count,drafts:d[0].count,media:m[0].count}, recent };
+    const [recent,activity] = await Promise.all([
+      query("SELECT id,name,email,service,status,created_at FROM leads ORDER BY created_at DESC LIMIT 6"),
+      query("SELECT action,entity_type,summary,created_at FROM audit_logs ORDER BY created_at DESC LIMIT 5")
+    ]);
+    return { counts:{portfolio:p[0].count,services:s[0].count,new_leads:l[0].count,drafts:d[0].count,media:m[0].count}, recent, activity };
   }
   if (resource === "settings") {
     const rows = await query("SELECT key,value FROM site_settings ORDER BY key");
@@ -174,9 +177,18 @@ async function savePage(data, admin, publish = false) {
 
 async function saveSettings(data, admin) {
   const allowed = new Set([
-    "site_name","logo_url","favicon_url","about_image_url","contact_email","phone","whatsapp","location",
-    "seo_title","seo_description","social_instagram","social_linkedin","social_facebook","social_tiktok",
-    "color_ink","color_blue","color_lime","color_paper","font_heading","font_body"
+    "site_name","logo_url","favicon_url","about_image_url",
+    "contact_email","phone","whatsapp","location",
+    "seo_title","seo_description","seo_image_url","social_instagram",
+    "social_linkedin","social_facebook","social_tiktok","color_ink",
+    "color_blue","color_lime","color_paper","font_heading",
+    "font_body","hero_video_enabled","hero_video_url","hero_poster_url",
+    "availability_enabled","availability_text","show_home_services","show_home_work",
+    "show_home_process","show_home_about","show_home_faq","show_home_testimonials",
+    "show_home_cta","header_cta_label","header_cta_url","nav_home_label",
+    "nav_about_label","nav_services_label","nav_portfolio_label","nav_contact_label",
+    "announcement_enabled","announcement_text","announcement_link_label","announcement_url",
+    "footer_tagline","footer_note","footer_cta_label"
   ]);
   for (const [key,value] of Object.entries(data || {})) {
     if (!allowed.has(key)) continue;
@@ -270,6 +282,12 @@ export default async function handler(req, res) {
         [text(d.url,3000),text(d.pathname,1000),text(d.filename,255),text(d.content_type,120),number(d.size_bytes),text(d.alt_text,500)]
       );
       await audit(admin.user_id,"uploaded","media",row.id,`Uploaded ${row.filename || "a media file"}.`);
+      result = row;
+    } else if (resource === "media" && action === "update") {
+      const id = number(body.id);
+      const [row] = await query("UPDATE media_assets SET alt_text=$1 WHERE id=$2 RETURNING *",[text(body.alt_text,500),id]);
+      if (!row) throw new Error("Media file not found.");
+      await audit(admin.user_id,"updated","media",id,`Updated description of ${row.filename || "a media file"}.`);
       result = row;
     } else if (resource === "media" && action === "delete") {
       const [asset] = await query("SELECT * FROM media_assets WHERE id=$1",[number(body.id)]);

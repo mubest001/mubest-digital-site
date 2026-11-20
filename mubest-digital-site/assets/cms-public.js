@@ -2,7 +2,7 @@
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
   const safeUrl = value => {
     const v = String(value || "").trim();
-    if (v.startsWith("/") || /^https:\/\/|^http:\/\//i.test(v)) return v;
+    if (/^\/(?!\/)/.test(v) || /^https?:\/\//i.test(v)) return v;
     return "";
   };
   const setText = (selector, value, root = document) => {
@@ -40,7 +40,7 @@
       : items.filter(item => item.featured).slice(0,3).length
         ? items.filter(item => item.featured).slice(0,3)
         : items.slice(0,3);
-    if (!list.length) return;
+    if (!list.length) { container.innerHTML=""; return; }
 
     // Preserve the current designed previews for the three seeded projects
     // until actual screenshots are uploaded through the dashboard.
@@ -82,7 +82,8 @@
   }
 
   function renderServices(items, container, detailed = false) {
-    if (!container || !Array.isArray(items) || !items.length) return;
+    if (!container || !Array.isArray(items)) return;
+    if (!items.length) { container.innerHTML=""; return; }
     container.innerHTML = items.map((item,index) => detailed
       ? `<article class="service-detail reveal" id="${esc(item.slug)}"><span class="service-icon">${iconSvg(item.icon)}</span><div><h2>${esc(item.title)}</h2><p>${esc(item.description || item.summary || "")}</p>${item.tag ? `<span class="service-tag">${esc(item.tag)}</span>` : ""}</div><ul>${(item.deliverables || []).map(d=>`<li>${esc(d)}</li>`).join("")}</ul></article>`
       : `<a class="service-card reveal" href="/services/#${esc(item.slug)}"><div class="service-top"><span class="service-icon">${iconSvg(item.icon)}</span><span class="service-number">${String(index+1).padStart(2,"0")} / ${String(items.length).padStart(2,"0")}</span></div><h3>${esc(item.title)}</h3><p>${esc(item.summary || item.description || "")}</p><span class="card-arrow">↗</span></a>`
@@ -102,7 +103,8 @@
 
   function renderFaqs(items) {
     const list = document.querySelector(".faq-list");
-    if (!list || !Array.isArray(items) || !items.length) return;
+    if (!list || !Array.isArray(items)) return;
+    if (!items.length) {list.innerHTML="";return;}
     list.innerHTML = items.map(item=>`<div class="faq-item"><button class="faq-question" data-faq-question aria-expanded="false"><span>${esc(item.question)}</span><span>+</span></button><div class="faq-answer"><p>${esc(item.answer)}</p></div></div>`).join("");
     list.querySelectorAll("[data-faq-question]").forEach(button=>{
       button.addEventListener("click",()=>{
@@ -154,7 +156,6 @@
       setText(".intro-title",p.intro_heading);
       const ps=document.querySelectorAll(".intro-copy p");
       ["intro_copy_1","intro_copy_2","intro_copy_3"].forEach((key,i)=>{if(ps[i]&&p[key])ps[i].textContent=p[key];});
-      setText(".values-grid", "", document);
       setText(".section-head .eyebrow",p.values_eyebrow);
       setText(".section-head h2",p.values_heading);
       setText(".section-head p",p.values_description);
@@ -213,8 +214,9 @@
       if(homeMark) {homeMark.classList.add("cms-about-mark");homeMark.innerHTML=`<img src="${esc(safeUrl(aboutImage))}" alt="Mubest" loading="lazy">`;}
     }
 
-    renderTestimonials(data.testimonials);
+    if (settings.show_home_testimonials !== false) renderTestimonials(data.testimonials);
     renderFaqs(data.faqs);
+
 
     const contactPoints = document.querySelector(".contact-points");
     if (contactPoints) {
@@ -223,10 +225,84 @@
         settings.phone ? `<a class="contact-point cms-contact-detail" href="tel:${esc(settings.phone.replace(/[^+0-9]/g,""))}"><span>☎</span>${esc(settings.phone)}</a>` : "",
         settings.whatsapp ? `<a class="contact-point cms-contact-detail" href="${esc(safeUrl(settings.whatsapp) || ("https://wa.me/" + settings.whatsapp.replace(/[^0-9]/g,"")))}" target="_blank" rel="noopener noreferrer"><span>↗</span>WhatsApp</a>` : ""
       ].filter(Boolean);
-      extras.forEach(markup => {
-        if (!contactPoints.querySelector(".cms-contact-detail")) contactPoints.insertAdjacentHTML("beforeend", markup);
+      extras.forEach(markup => contactPoints.insertAdjacentHTML("beforeend", markup));
+    }
+
+    // Additional live design/content controls from Content Studio 2.0.
+    // Defaults retain the current public website until the admin changes them.
+    if (page.seo_title) document.title=String(page.seo_title).slice(0,180);
+    if (page.seo_description) {
+      const meta=document.querySelector('meta[name="description"]');
+      if (meta) meta.content=String(page.seo_description).slice(0,300);
+    }
+    const updateMeta=(property,content)=>{
+      if(!content)return;
+      let el=document.querySelector(`meta[property="${property}"]`);
+      if(!el){el=document.createElement("meta");el.setAttribute("property",property);document.head.appendChild(el);}
+      el.content=String(content);
+    };
+    updateMeta("og:title",page.seo_title||settings.seo_title);
+    updateMeta("og:description",page.seo_description||settings.seo_description);
+    if(safeUrl(settings.seo_image_url))updateMeta("og:image",safeUrl(settings.seo_image_url));
+
+    // Add fonts only from the approved list of supported families.
+    const fontNames=[settings.font_heading,settings.font_body].filter(x=>["Inter","Manrope","DM Sans","Montserrat","Poppins"].includes(x));
+    if(fontNames.some(x=>!['Inter','Manrope'].includes(x))){
+      const href="https://fonts.googleapis.com/css2?"+[...new Set(fontNames)].map(name=>"family="+encodeURIComponent(name).replace(/%20/g,"+")+":wght@400;500;600;700;800").join("&")+"&display=swap";
+      const link=document.createElement("link");link.rel="stylesheet";link.href=href;document.head.appendChild(link);
+    }
+
+    const navLinks={"/":settings.nav_home_label,"/about/":settings.nav_about_label,"/services/":settings.nav_services_label,"/portfolio/":settings.nav_portfolio_label,"/contact/":settings.nav_contact_label};
+    document.querySelectorAll(".site-header .nav a").forEach(a=>{
+      const label=navLinks[a.getAttribute("href")];if(label)a.textContent=String(label);
+    });
+    setLink(document.querySelector(".site-header .header-cta"),settings.header_cta_label,settings.header_cta_url);
+
+    const announcementText=String(settings.announcement_text||"").trim();
+    if(settings.announcement_enabled===true && announcementText){
+      const announcement=document.createElement("div");announcement.className="cms-announcement";
+      const span=document.createElement("span");span.textContent=announcementText;announcement.appendChild(span);
+      if(safeUrl(settings.announcement_url) && settings.announcement_link_label){
+        const a=document.createElement("a");a.href=safeUrl(settings.announcement_url);a.textContent=String(settings.announcement_link_label)+" ↗";
+        if(/^https?:\/\//.test(a.href)){a.target="_blank";a.rel="noopener noreferrer";}
+        announcement.appendChild(a);
+      }
+      document.body.classList.add("has-cms-announcement");
+      document.body.prepend(announcement);
+    }
+    const video=document.querySelector(".hero-video");
+    if(video){
+      const customVideo=safeUrl(settings.hero_video_url);
+      const customPoster=safeUrl(settings.hero_poster_url);
+      if(customPoster)video.poster=customPoster;
+      if(customVideo){let src=video.querySelector("source");if(!src){src=document.createElement("source");video.appendChild(src);}src.src=customVideo;src.type="video/mp4";video.load();}
+      if(settings.hero_video_enabled===false){video.pause();video.hidden=true;video.style.display="none";const hero=document.querySelector(".hero");if(hero&&customPoster)hero.style.backgroundImage=`linear-gradient(90deg,rgba(13,15,22,.88),rgba(13,15,22,.52)),url("${customPoster.replace(/["'\\()]/g,'')}")`;hero.style.backgroundSize="cover";hero.style.backgroundPosition="center";}
+      else if(customVideo&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !(navigator.connection&&navigator.connection.saveData)){video.play().catch(()=>{});}
+    }
+    if(settings.availability_enabled===true){
+      const heroContent=document.querySelector(".hero-content");
+      if(heroContent){const pill=document.createElement("div");pill.className="cms-availability";pill.textContent=String(settings.availability_text||"Available for select new projects");heroContent.appendChild(pill);}
+    }
+    if(pageKey==="home"){
+      const sectionSwitches=[
+        ["show_home_services",".services-section"],
+        ["show_home_work",".work-section"],
+        ["show_home_process",".process-section"],
+        ["show_home_about",".about-strip"],
+        ["show_home_faq",".faq-list"],
+        ["show_home_cta",".cta-section"],
+        ["show_home_testimonials",".cms-testimonials"]
+      ];
+      sectionSwitches.forEach(([key,selector])=>{
+        if(settings[key]!==false)return;
+        let el=document.querySelector(selector);
+        if(el&&[".about-strip",".faq-list"].includes(selector))el=el.closest("section");
+        if(el)el.style.display="none";
       });
     }
+    setText(".site-footer .footer-brand p",settings.footer_tagline);
+    setText(".site-footer .footer-bottom > span:last-child",settings.footer_note);
+    setLink(document.querySelector(".site-footer .footer-col:last-child a:first-of-type"),settings.footer_cta_label);
 
     const footer=document.querySelector(".site-footer .footer-top");
     if(footer) {
