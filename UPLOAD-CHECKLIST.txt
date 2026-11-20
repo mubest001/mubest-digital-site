@@ -1,0 +1,32 @@
+MUBEST DIGITAL CMS — MANUAL UPLOAD CHECKLIST
+
+Upload this package into the existing mubest-digital-site directory in:
+https://github.com/mubest001/mubest-digital-site
+
+ADD:
+admin/index.html
+api/auth.js
+api/public-content.js
+api/admin.js
+api/contact.js
+api/upload.js
+lib/auth.js
+lib/db.js
+lib/defaults.js
+assets/cms-admin.css
+assets/cms-admin.js
+assets/cms-public.css
+assets/cms-public.js
+database/schema.sql
+README-CMS-SETUP.md
+package.json
+
+REPLACE:
+assets/site.js
+robots.txt
+
+KEEP the existing website pages, assets/site.css, logo, favicon, and vercel.json.
+
+Before committing, create a dedicated Neon project, create a Public Vercel Blob store in the existing Vercel project, and add DATABASE_URL, ADMIN_SETUP_KEY, SITE_URL and BLOB_READ_WRITE_TOKEN to Vercel Environment Variables. Removing ADMIN_SETUP_KEY after first admin setup is optional.
+
+Full step-by-step instructions are in README-CMS-SETUP.md.
