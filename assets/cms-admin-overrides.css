@@ -1,0 +1,47 @@
+/*
+ * Mubest Digital admin presentation fixes.
+ * Keep the HTML hidden attribute authoritative even when component classes
+ * define display:grid/flex, and use the real brand logo in admin branding.
+ */
+
+/* CSS display declarations on .auth-screen, .admin-app and .auth-form
+   must never override the hidden attribute. */
+[hidden] {
+  display: none !important;
+}
+
+/* Use the actual horizontal Mubest Digital brand asset. */
+.auth-brand,
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-width: 0;
+}
+
+.admin-brand-logo {
+  display: block;
+  width: 205px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.sidebar-brand .admin-brand-logo {
+  width: 170px;
+}
+
+.auth-brand .admin-brand-logo {
+  width: 205px;
+}
+
+@media (max-width: 760px) {
+  .sidebar-brand .admin-brand-logo {
+    width: 170px;
+  }
+
+  .auth-brand .admin-brand-logo {
+    width: 195px;
+  }
+}

@@ -1,0 +1,18 @@
+MUBEST DIGITAL ADMIN DISPLAY + BRAND FIX
+
+Upload these files into the existing Vercel Root Directory folder:
+- admin/index.html
+- assets/cms-admin-overrides.css
+
+These are replacement/additional files for the existing website folder:
+mubest-digital-site/
+
+Do not upload the outer ZIP folder itself.
+Do not replace cms-admin.css, cms-admin.js, site.css, site.js, index.html,
+mubest-digital-logo.svg, favicon.svg, or vercel.json.
+
+The updated admin page loads the existing real logo from:
+ /assets/mubest-digital-logo.svg
+
+The override stylesheet fixes the hidden attribute being overridden by CSS,
+so the login/setup screen and admin dashboard cannot appear together.

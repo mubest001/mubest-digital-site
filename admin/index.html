@@ -8,11 +8,14 @@
   <title>Admin | Mubest Digital</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/assets/cms-admin.css">
+  <link rel="stylesheet" href="/assets/cms-admin-overrides.css">
 </head>
 <body class="admin-body">
   <div id="authScreen" class="auth-screen">
     <div class="auth-card">
-      <a class="auth-brand" href="/"><span class="auth-mark">M.</span><span>MUBEST <b>DIGITAL</b></span></a>
+      <a class="auth-brand" href="/" aria-label="Mubest Digital home">
+        <img class="admin-brand-logo" src="/assets/mubest-digital-logo.svg" alt="Mubest Digital">
+      </a>
       <div class="auth-heading">
         <span class="eyebrow">Private workspace</span>
         <h1 id="authTitle">Welcome back.</h1>
@@ -36,7 +39,9 @@
 
   <div id="adminApp" class="admin-app" hidden>
     <aside class="sidebar" id="sidebar">
-      <a class="sidebar-brand" href="/"><span class="sidebar-mark">M.</span><span>MUBEST <b>DIGITAL</b><small>CONTENT STUDIO</small></span></a>
+      <a class="sidebar-brand" href="/" aria-label="Mubest Digital home">
+        <img class="admin-brand-logo" src="/assets/mubest-digital-logo.svg" alt="Mubest Digital">
+      </a>
       <div class="sidebar-label">WORKSPACE</div>
       <nav class="sidebar-nav" aria-label="Admin navigation">
         <button data-view="overview" class="active"><span>▦</span> Overview</button>
