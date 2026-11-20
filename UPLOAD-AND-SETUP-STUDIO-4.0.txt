@@ -1,0 +1,118 @@
+MUBEST DIGITAL CONTENT STUDIO 4.0
+Visual Website Builder + Website Analytics
+
+IMPORTANT: Upload the CONTENTS of the included mubest-digital-site folder into
+this existing GitHub folder:
+https://github.com/mubest001/mubest-digital-site/tree/main/mubest-digital-site
+
+Do not upload the outer ZIP folder into the repository root.
+
+FILES TO REPLACE
+- admin/index.html
+- api/public-content.js
+- assets/site.js
+
+NEW FILES
+- admin/visual-editor.html
+- admin/analytics.html
+- api/visual-layout.js
+- api/analytics.js
+- api/analytics-config.js
+- assets/studio4-nav.css
+- assets/visual-editor.css
+- assets/visual-editor.js
+- assets/visual-editor-bridge.js
+- assets/visual-layout-runtime.js
+- assets/studio4-runtime.js
+- assets/analytics.css
+- assets/analytics.js
+- database/studio4-migration.sql
+
+No existing Neon content, admin password, CMS API, portfolio data, logo, favicon,
+hero carousel or two-colour stylesheet is deleted or replaced.
+
+VISUAL WEBSITE BUILDER
+1. Commit the upload to main and wait for Vercel to show Ready.
+2. Sign in at https://mubestdigital.vercel.app/admin/
+3. Select "Visual website builder" in the left sidebar.
+4. Choose Home, About, Services, Portfolio or Contact.
+5. Click an element in the page preview to select it.
+6. Edit text, links, image/video URL, colours, font size, alignment, width,
+   padding, margin and corner radius in the right panel.
+7. Use the blue "Drag to move" handle shown above a selected element to move it.
+8. Use the left panel to add headings, text, images, buttons, videos, review
+   quotes, new sections and dividers.
+9. Save draft to keep changes private, or Publish to make them live.
+
+The editor works with the existing page DOM and stores safe, structured element
+changes in a new Neon table. It is a responsive, section-aware editor; it does
+not provide unrestricted absolute-position pixel design. Header/footer
+navigation and some dynamic CMS-managed components are protected to reduce the
+risk of breaking the website. Use the existing dashboard editors for those.
+
+VISITOR ANALYTICS CONNECTION
+The Analytics screen uses the official Vercel Web Analytics API. Before it can
+show real traffic, do the following:
+
+1. In Vercel, open the Mubest Digital project and select Analytics.
+2. Enable Web Analytics. Vercel says the analytics routes are added after the
+   next deployment, so enable it before or around the Studio 4.0 deployment.
+3. Find the Project ID in Vercel Project Settings > General.
+4. Create a Vercel access token with access to read analytics for this project.
+   Keep it private. Never paste the token into the website or into ChatGPT.
+5. In Vercel Project Settings > Environment Variables, add these variables for
+   Production:
+
+   VERCEL_ANALYTICS_TOKEN       = your private Vercel access token
+   VERCEL_ANALYTICS_PROJECT_ID  = your Vercel project ID (prj_...) or project name (mubest-digital-site)
+   VERCEL_ANALYTICS_TEAM_ID     = your team ID (only for a team-owned project)
+
+   The team ID returned while checking this project's Vercel team scope was:
+   team_uGP8TymcgAroP69Wy7gtzWei
+   Use that only if this is still the team that owns the project. If the project
+   is in a personal account, omit VERCEL_ANALYTICS_TEAM_ID.
+
+6. Redeploy the Production project after adding environment variables.
+7. Open https://vercel.com/docs/analytics/quickstart and use the static HTML
+   snippet. Copy the exact unique script path from the Vercel static HTML snippet. The official snippet uses this shape:
+
+   /your-unique-path/script.js
+
+8. Sign in to Mubest Digital Admin > Website analytics. Paste that path into
+   "Vercel tracking script path" and save it. The public website will then load
+   the tracking script on visitor pages, but not in the admin or visual-editor
+   preview.
+
+The private Vercel token and project ID/name are read only by the server-side API.
+The tracking script path is public and is stored in the site's public settings. Vercel Web Analytics records anonymous aggregate data, does not associate it with an individual or IP address, and automatically discards visitor-session data after 24 hours.
+
+ANALYTICS DATA
+- Last 24 hours, 7 days and 30 days
+- Unique visitors and page views
+- Visitor countries
+- Popular pages
+- Referring websites
+- Device types
+- Contact-form enquiries from Neon and an enquiry rate estimate
+
+Vercel Web Analytics reports aggregated, anonymized traffic. It does not show
+individual visitor names, IP addresses or exact street locations. Its visitor
+identifier resets daily. Analytics data starts after tracking is enabled; it
+cannot recreate visits from before tracking was installed.
+
+SECURITY / DATABASE
+- The visual layout table is created automatically on the first authenticated
+  visual-layout API request. The SQL migration is also included for reference.
+- The analytics token is never returned to the browser.
+- All save actions require the existing administrator session and same-origin
+  checks.
+- Keep SITE_URL set to the canonical admin/site origin you use:
+  https://mubestdigital.vercel.app
+
+TEST AFTER DEPLOYMENT
+1. Open /admin/ and confirm the two new sidebar links appear.
+2. Open /admin/visual-editor.html, select an element, change a text value,
+   Save draft, then Publish. Open the public page in a separate tab to confirm.
+3. Open /admin/analytics.html. Complete the Vercel connection steps above.
+4. Visit the public website once, then check Analytics after Vercel has processed
+   the first events. Initial analytics data may not appear instantly.

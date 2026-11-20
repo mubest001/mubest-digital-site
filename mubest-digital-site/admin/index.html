@@ -8,7 +8,9 @@
   <title>Content Studio · Mubest Digital</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/assets/cms-admin.css?v=studio2">
+  <link rel="stylesheet" href="/assets/cms-admin-overrides.css?v=2">
   <link rel="stylesheet" href="/assets/layout-builder-admin.css?v=1">
+  <link rel="stylesheet" href="/assets/studio4-nav.css?v=4">
 </head>
 <body class="admin-body">
   <svg class="symbol-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
@@ -40,63 +42,33 @@
     <symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="5" width="13" height="14" rx="2"/><path d="m16 10 5-3v10l-5-3"/></symbol>
     <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.6"/></symbol>
   </svg>
-
   <div id="authScreen" class="auth-screen">
-    <div class="auth-left">
-      <a href="/" class="auth-brand"><img data-brand-logo src="/assets/mubest-digital-logo.svg" alt="Mubest Digital"></a>
-      <div class="auth-story"><span class="auth-serial">MUBEST DIGITAL / STUDIO 01</span><h2>Your entire digital presence.<br><em>One beautiful workspace.</em></h2><p>Keep your website current, thoughtfully designed and unmistakably yours.</p><div class="auth-art"><span class="auth-art-ring r1"></span><span class="auth-art-ring r2"></span><span class="auth-art-core">M<span class="auth-art-dot">✳</span></span></div></div>
-      <span class="auth-left-foot">CONTENT STUDIO · PRIVATE WORKSPACE</span>
-    </div>
-    <div class="auth-right"><div class="auth-card"><div class="auth-mobile-logo"><img data-brand-logo src="/assets/mubest-digital-logo.svg" alt="Mubest Digital"></div><span class="eyebrow">SECURE ACCESS</span><h1 id="authTitle">Welcome back.</h1><p id="authSubtitle">Sign in to manage your website.</p>
-      <form id="loginForm" class="auth-form" hidden>
-        <label>Email address<input name="email" type="email" autocomplete="username" required placeholder="you@example.com"></label>
-        <label>Password<input name="password" type="password" autocomplete="current-password" required placeholder="Your password"></label>
-        <button class="admin-button primary" type="submit">Sign in to studio <svg><use href="#i-arrow-right"/></svg></button>
-      </form>
-      <form id="setupForm" class="auth-form" hidden>
-        <label>One-time setup key<input name="setup_key" type="password" autocomplete="off" required placeholder="Paste your private key from Vercel"></label>
-        <label>Admin email<input name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
-        <label>Create password<input name="password" type="password" minlength="12" autocomplete="new-password" required placeholder="At least 12 characters"></label>
-        <button class="admin-button primary" type="submit">Create administrator <svg><use href="#i-arrow-right"/></svg></button>
-      </form>
+    <div class="auth-left"><a href="/" class="auth-brand"><img class="admin-brand-logo" data-brand-logo src="/assets/mubest-digital-logo.svg" alt="Mubest Digital"></a><div class="auth-story"><span class="auth-serial">MUBEST DIGITAL / STUDIO 01</span><h2>Your entire digital presence.<br><em>One beautiful workspace.</em></h2><p>Keep your website current, thoughtfully designed and unmistakably yours.</p><div class="auth-art"><span class="auth-art-ring r1"></span><span class="auth-art-ring r2"></span><span class="auth-art-core">M<span class="auth-art-dot">✳</span></span></div></div><span class="auth-left-foot">CONTENT STUDIO · PRIVATE WORKSPACE</span></div>
+    <div class="auth-right"><div class="auth-card"><div class="auth-mobile-logo"><img class="admin-brand-logo" data-brand-logo src="/assets/mubest-digital-logo.svg" alt="Mubest Digital"></div><span class="eyebrow">SECURE ACCESS</span><h1 id="authTitle">Welcome back.</h1><p id="authSubtitle">Sign in to manage your website.</p>
+      <form id="loginForm" class="auth-form" hidden><label>Email address<input name="email" type="email" autocomplete="username" required placeholder="you@example.com"></label><label>Password<input name="password" type="password" autocomplete="current-password" required placeholder="Your password"></label><button class="admin-button primary" type="submit">Sign in to studio <svg><use href="#i-arrow-right"/></svg></button></form>
+      <form id="setupForm" class="auth-form" hidden><label>One-time setup key<input name="setup_key" type="password" autocomplete="off" required placeholder="Paste your private key from Vercel"></label><label>Admin email<input name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label><label>Create password<input name="password" type="password" minlength="12" autocomplete="new-password" required placeholder="At least 12 characters"></label><button class="admin-button primary" type="submit">Create administrator <svg><use href="#i-arrow-right"/></svg></button></form>
       <p id="authMessage" class="auth-message" role="status"></p><a class="auth-back" href="/">← Return to website</a>
     </div></div>
   </div>
-
   <div id="adminApp" class="admin-app" hidden>
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-head"><a href="/" class="sidebar-brand" aria-label="Mubest Digital website"><img data-brand-logo src="/assets/mubest-digital-logo.svg" alt="Mubest Digital"></a><div class="studio-caption"><span class="studio-caption-dot"></span> CONTENT STUDIO <span class="studio-caption-version">2.0</span></div></div>
+    <aside class="sidebar" id="sidebar"><div class="sidebar-head"><a href="/" class="sidebar-brand" aria-label="Mubest Digital website"><img class="admin-brand-logo" data-brand-logo src="/assets/mubest-digital-logo.svg" alt="Mubest Digital"></a><div class="studio-caption"><span class="studio-caption-dot"></span> CONTENT STUDIO <span class="studio-caption-version">4.0</span></div></div>
       <nav class="sidebar-nav" aria-label="Content studio navigation">
-        <div class="nav-group-label">WORKSPACE</div>
-        <button data-view="overview" class="active"><svg><use href="#i-grid"/></svg> Overview</button>
-        <button data-view="leads"><svg><use href="#i-mail"/></svg> Enquiries <i id="leadBadge" aria-label="New enquiries"></i></button>
-        <div class="nav-group-label">YOUR CONTENT</div>
-        <button data-view="pages"><svg><use href="#i-pages"/></svg> Pages</button>
-        <button data-view="layout"><svg><use href="#i-layout"/></svg> Visual layout builder</button>
-        <button data-view="portfolio"><svg><use href="#i-briefcase"/></svg> Portfolio</button>
-        <button data-view="services"><svg><use href="#i-services"/></svg> Services</button>
-        <button data-view="testimonials"><svg><use href="#i-star"/></svg> Testimonials</button>
-        <button data-view="faqs"><svg><use href="#i-help"/></svg> FAQs</button>
-        <button data-view="media"><svg><use href="#i-image"/></svg> Media library</button>
-        <div class="nav-group-label">SITE DESIGN & SETTINGS</div>
-        <button data-view="branding"><svg><use href="#i-palette"/></svg> Brand identity</button>
-        <button data-view="homepage"><svg><use href="#i-video"/></svg> Homepage & hero</button>
-        <button data-view="navigation"><svg><use href="#i-layout"/></svg> Header & footer</button>
-        <button data-view="seo"><svg><use href="#i-search"/></svg> SEO & sharing</button>
-        <button data-view="contactsettings"><svg><use href="#i-globe"/></svg> Contact & social</button>
-        <div class="nav-group-label">SYSTEM</div>
-        <button data-view="activity"><svg><use href="#i-activity"/></svg> Activity & revisions</button>
+        <div class="nav-group-label">WORKSPACE</div><button data-view="overview" class="active"><svg><use href="#i-grid"/></svg> Overview</button><button data-view="leads"><svg><use href="#i-mail"/></svg> Enquiries <i id="leadBadge" aria-label="New enquiries"></i></button>
+        <div class="nav-group-label">YOUR CONTENT</div><button data-view="pages"><svg><use href="#i-pages"/></svg> Pages</button><button data-view="layout"><svg><use href="#i-layout"/></svg> Visual layout builder</button>
+        <a class="studio4-nav-link" href="/admin/visual-editor.html"><svg><use href="#i-layout"/></svg><span>Visual website builder</span><b>NEW</b></a>
+        <button data-view="portfolio"><svg><use href="#i-briefcase"/></svg> Portfolio</button><button data-view="services"><svg><use href="#i-services"/></svg> Services</button><button data-view="testimonials"><svg><use href="#i-star"/></svg> Testimonials</button><button data-view="faqs"><svg><use href="#i-help"/></svg> FAQs</button><button data-view="media"><svg><use href="#i-image"/></svg> Media library</button>
+        <div class="nav-group-label">SITE DESIGN & SETTINGS</div><button data-view="branding"><svg><use href="#i-palette"/></svg> Brand identity</button><button data-view="homepage"><svg><use href="#i-video"/></svg> Homepage & hero</button><button data-view="navigation"><svg><use href="#i-layout"/></svg> Header & footer</button><button data-view="seo"><svg><use href="#i-search"/></svg> SEO & sharing</button><button data-view="contactsettings"><svg><use href="#i-globe"/></svg> Contact & social</button>
+        <div class="nav-group-label">GROWTH & INSIGHTS</div><a class="studio4-nav-link" href="/admin/analytics.html"><svg><use href="#i-activity"/></svg><span>Website analytics</span><b>NEW</b></a>
+        <div class="nav-group-label">SYSTEM</div><button data-view="activity"><svg><use href="#i-activity"/></svg> Activity & revisions</button>
       </nav>
       <div class="sidebar-bottom"><a class="sidebar-live-link" href="/" target="_blank" rel="noopener noreferrer"><span><svg><use href="#i-globe"/></svg> Live website</span><svg><use href="#i-arrow"/></svg></a><div class="user-card"><span class="user-avatar">M</span><span class="user-identity"><strong id="adminEmail">Administrator</strong><small>Site administrator</small></span><button id="logoutButton" aria-label="Sign out" title="Sign out"><svg><use href="#i-logout"/></svg></button></div></div>
     </aside>
     <button id="sidebarScrim" class="sidebar-scrim" aria-label="Close menu" hidden></button>
-    <div class="admin-main">
-      <header class="admin-topbar"><div class="topbar-heading"><button id="mobileMenu" class="mobile-menu" aria-label="Open menu"><svg><use href="#i-menu"/></svg></button><div><div class="topbar-kicker">WORKSPACE <span>/</span> <span id="sectionBreadcrumb">OVERVIEW</span></div><h1 id="viewTitle">Overview</h1></div></div><div class="topbar-actions"><span class="topbar-live"><span></span> Website live</span><a class="topbar-site-link" href="/" target="_blank" rel="noopener noreferrer"><svg><use href="#i-eye"/></svg><span>View website</span><svg><use href="#i-arrow"/></svg></a><button id="quickAddButton" class="topbar-primary"><svg><use href="#i-plus"/></svg> Create new</button></div></header>
+    <div class="admin-main"><header class="admin-topbar"><div class="topbar-heading"><button id="mobileMenu" class="mobile-menu" aria-label="Open menu"><svg><use href="#i-menu"/></svg></button><div><div class="topbar-kicker">WORKSPACE <span>/</span> <span id="sectionBreadcrumb">OVERVIEW</span></div><h1 id="viewTitle">Overview</h1></div></div><div class="topbar-actions"><span class="topbar-live"><span></span> Website live</span><a class="topbar-site-link" href="/" target="_blank" rel="noopener noreferrer"><svg><use href="#i-eye"/></svg><span>View website</span><svg><use href="#i-arrow"/></svg></a><button id="quickAddButton" class="topbar-primary"><svg><use href="#i-plus"/></svg> Create new</button></div></header>
       <main id="adminPanel" class="admin-panel"><div class="loading-state">Opening your workspace…</div></main>
       <div id="quickAddMenu" class="quick-menu" hidden><button data-create="portfolio"><svg><use href="#i-briefcase"/></svg> New portfolio project</button><button data-create="services"><svg><use href="#i-services"/></svg> New service</button><button data-create="testimonials"><svg><use href="#i-star"/></svg> Add testimonial</button><button data-create="faqs"><svg><use href="#i-help"/></svg> New FAQ</button><button data-create="media"><svg><use href="#i-image"/></svg> Upload media</button></div>
     </div>
   </div>
-
   <dialog id="editorDialog" class="admin-dialog"><form id="editorForm" method="dialog"><div class="dialog-head"><div><span class="eyebrow">CONTENT EDITOR</span><h2 id="editorTitle">Edit item</h2><p>Changes are saved securely to your content studio.</p></div><button type="button" class="icon-button" data-close-dialog aria-label="Close">×</button></div><div id="editorFields" class="dialog-fields"></div><div class="dialog-actions"><button type="button" class="admin-button ghost" data-close-dialog>Cancel</button><button type="submit" class="admin-button primary">Save changes <svg><use href="#i-check"/></svg></button></div></form></dialog>
   <dialog id="mediaDialog" class="admin-dialog media-dialog"><div class="dialog-head"><div><span class="eyebrow">MEDIA LIBRARY</span><h2>Choose an image</h2><p>Select an uploaded asset to use on your site.</p></div><button type="button" class="icon-button" data-close-media aria-label="Close">×</button></div><div id="mediaPicker" class="media-picker"></div></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>

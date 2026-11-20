@@ -12,14 +12,13 @@ const PUBLIC_SETTINGS = [
   "show_home_cta","header_cta_label","header_cta_url","nav_home_label",
   "nav_about_label","nav_services_label","nav_portfolio_label","nav_contact_label",
   "announcement_enabled","announcement_text","announcement_link_label","announcement_url",
-  "footer_tagline","footer_note","footer_cta_label","layout_sections"
+  "footer_tagline","footer_note","footer_cta_label","layout_sections","analytics_script_url"
 ];
 
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store, max-age=0");
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed." });
-
   try {
     await ensureSchema();
     const [settingsRows, pageRows, portfolio, services, testimonials, faqs] = await Promise.all([
@@ -30,7 +29,6 @@ export default async function handler(req, res) {
       query("SELECT id,name,role,company,quote,avatar_url,rating,sort_order FROM testimonials WHERE status='published' ORDER BY sort_order ASC,id DESC"),
       query("SELECT id,question,answer,sort_order FROM faqs WHERE status='published' ORDER BY sort_order ASC,id ASC")
     ]);
-
     const settings = Object.fromEntries(settingsRows.map(row => [row.key, row.value]));
     const pages = Object.fromEntries(pageRows.map(row => [row.slug, row.published || {}]));
     return res.status(200).json({ settings, pages, portfolio, services, testimonials, faqs });
