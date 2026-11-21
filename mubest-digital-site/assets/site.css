@@ -322,3 +322,81 @@ img, video { max-width: 100%; }
   .form-row { grid-template-columns: 1fr; gap: 0; }
   .contact-form { padding: 23px; }
 }
+
+
+/* ============================================================
+   MUBEST DIGITAL | MOBILE NAVIGATION BACKGROUND FIX (v8)
+   The blurred fixed header establishes a containing block for
+   fixed children. Anchor the expanded menu beneath the header
+   instead, and give it a fully opaque charcoal background.
+   ============================================================ */
+@media (max-width: 680px) {
+  body.menu-open .site-header,
+  body.menu-open .site-header.is-scrolled {
+    background: #17191f !important;
+  }
+
+  .site-header .nav {
+    position: absolute !important;
+    inset: 100% 0 auto 0 !important;
+    width: 100%;
+    height: calc(100vh - 76px);
+    height: calc(100dvh - 76px);
+    min-height: 0;
+    max-height: none;
+    z-index: 1001;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 24px clamp(24px, 6vw, 42px) 48px;
+    background: #17191f !important;
+    background-image: none !important;
+    box-shadow: -12px 18px 38px rgba(0, 0, 0, .30);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(101%);
+    transition: transform .3s cubic-bezier(.22, 1, .36, 1),
+                opacity .22s ease, visibility .3s;
+  }
+
+  .site-header .nav.open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(0);
+  }
+
+  .site-header .nav a {
+    display: block;
+    padding: 18px 2px;
+    color: #ffffff !important;
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, .13);
+    font: 600 clamp(1.15rem, 5.2vw, 1.5rem)/1.35 'Manrope', sans-serif;
+  }
+
+  .site-header .nav a.active,
+  .site-header .nav a:hover,
+  .site-header .nav a:focus-visible {
+    color: #b9e769 !important;
+  }
+
+  .site-header .nav a:focus-visible {
+    outline: 2px solid #b9e769;
+    outline-offset: 3px;
+  }
+
+  body.menu-open .menu-toggle {
+    background: rgba(255, 255, 255, .10);
+    border-color: rgba(185, 231, 105, .6);
+  }
+
+  /* If a CMS announcement bar is visible, the header is offset
+     by 39px. Keep the menu beneath the header, not the viewport. */
+  body.has-cms-announcement .site-header .nav {
+    inset: 100% 0 auto 0 !important;
+    height: calc(100vh - 115px);
+    height: calc(100dvh - 115px);
+  }
+}
