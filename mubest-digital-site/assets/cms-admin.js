@@ -407,8 +407,8 @@
 
   async function uploadFiles(fileList){
     const files=Array.from(fileList||[]);if(!files.length)return;
-    const max=80*1024*1024;
-    if(files.some(f=>f.size>max)){toast('Files over 80 MB are not supported by this uploader.',true);return;}
+    const max=50*1024*1024;
+    if(files.some(f=>f.size>max)){toast('Files over 50 MB are not supported by this uploader.',true);return;}
     try{
       toast(`Uploading ${files.length} file${files.length!==1?'s':''}…`);
       const {upload}=await import('https://esm.sh/@vercel/blob@2.0.0/client');
@@ -438,17 +438,97 @@
     };
     $('#mediaSearch',panel).addEventListener('input',renderList);$('#mediaFilter',panel).addEventListener('change',renderList);renderList();
   }
+  // Integrated media picker: reuses the authenticated Vercel Blob + Neon endpoints.
+  // It never switches away from the record the administrator is currently editing.
+  function renderMediaPicker(message='',tone=''){
+    const dialog=$('#mediaDialog'),container=$('#mediaPicker');
+    const field=String(state.mediaTarget?.field||'');
+    const allowVideo=/video|poster|background/i.test(field);
+    const available=(state.media||[]).filter(item=>{
+      const mime=String(item.content_type||'').toLowerCase();
+      return mime.startsWith('image/')||(allowVideo&&mime.startsWith('video/'));
+    });
+    const fileCount=available.length;
+    container.innerHTML=`
+      <div class="mpu-intro">
+        <div class="mpu-drop" id="mpuDrop" role="button" tabindex="0" aria-label="Browse your computer to upload media">
+          <span class="mpu-drop-mark" aria-hidden="true">${icon('plus')}</span>
+          <div class="mpu-drop-copy"><strong>Drop your media here</strong><small>Or click to browse your computer. JPG, PNG, WebP, GIF, SVG, MP4 and WebM · Maximum 50 MB per file.</small></div>
+          <button type="button" class="mpu-browse">Browse files</button>
+        </div>
+        <div class="mpu-toolbar"><div class="mpu-search">${icon('search')}<input id="mpuSearch" type="search" placeholder="Search your media library..." aria-label="Search existing media"></div><span class="mpu-count" id="mpuCount">${fileCount} file${fileCount===1?'':'s'}</span></div>
+      </div>
+      <div id="mpuFeedback" class="mpu-feedback" role="status" aria-live="polite" ${message?'':'hidden'}></div>
+      <div id="mpuResults" class="mpu-results"></div>`;
+    const feedback=$('#mpuFeedback',container);
+    if(message){feedback.textContent=message;feedback.dataset.tone=tone;}
+    const draw=()=>{
+      const term=$('#mpuSearch',container).value.trim().toLowerCase();
+      const filtered=available.filter(item=>[item.filename,item.alt_text].join(' ').toLowerCase().includes(term));
+      $('#mpuCount',container).textContent=`${filtered.length} of ${fileCount} files`;
+      $('#mpuResults',container).innerHTML=filtered.length?`<div class="mpu-grid">${filtered.map(item=>{
+        const isVideo=String(item.content_type||'').startsWith('video/');
+        const thumb=isVideo?`<span class="mpu-video-icon">${icon('video')}</span>`:`<img src="${esc(item.url||'')}" alt="${esc(item.alt_text||item.filename||'Image')}" loading="lazy">`;
+        return `<button type="button" class="mpu-tile" data-select-media="${esc(item.id)}" title="Insert ${esc(item.filename||'media')}"><span class="mpu-thumb">${thumb}</span><span class="mpu-filename">${esc(item.filename||'Media')}</span><span class="mpu-insert">Select ${icon('arrow-right')}</span></button>`;
+      }).join('')}</div>`:`<div class="mpu-empty"><strong>${term?'No matching files':'Your media library is empty'}</strong><p>${term?'Try a different search.':'Upload a photo, logo or video above, then select it for this field.'}</p></div>`;
+    };
+    $('#mpuSearch',container).addEventListener('input',draw);
+    $('#mpuResults',container).addEventListener('click',event=>{
+      const button=event.target.closest('[data-select-media]');if(!button)return;
+      const item=state.media.find(asset=>String(asset.id)===button.dataset.selectMedia);
+      const target=state.mediaTarget?.form?.elements[state.mediaTarget?.field];
+      if(item&&target){
+        target.value=item.url;
+        target.dispatchEvent(new Event('input',{bubbles:true}));
+        target.dispatchEvent(new Event('change',{bubbles:true}));
+        dialog.close();
+        toast('Media selected. Save your changes to publish it.');
+      }else toast('Could not insert that file. Please reopen the editor.',true);
+    });
+    const drop=$('#mpuDrop',container);
+    drop.querySelector('.mpu-browse').addEventListener('click',event=>{event.stopPropagation();$('#mediaPickerUpload').click();});
+    drop.addEventListener('click',event=>{if(event.target.closest('button'))return;$('#mediaPickerUpload').click();});
+    drop.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();$('#mediaPickerUpload').click();}});
+    for(const name of ['dragenter','dragover'])drop.addEventListener(name,event=>{event.preventDefault();drop.classList.add('is-dragging');});
+    drop.addEventListener('dragleave',event=>{event.preventDefault();if(!drop.contains(event.relatedTarget))drop.classList.remove('is-dragging');});
+    drop.addEventListener('drop',event=>{event.preventDefault();drop.classList.remove('is-dragging');if(event.dataTransfer?.files?.length)uploadMediaPickerFiles(event.dataTransfer.files);});
+    draw();
+  }
+  let pickerUploading=false;
+  async function uploadMediaPickerFiles(fileList){
+    if(pickerUploading)return;
+    const files=Array.from(fileList||[]);if(!files.length)return;
+    const types=new Set(['image/jpeg','image/png','image/webp','image/gif','image/svg+xml','video/mp4','video/webm']);
+    if(files.some(f=>f.size>50*1024*1024)){renderMediaPicker('Each file must be no larger than 50 MB.','error');return;}
+    if(files.some(f=>!types.has(f.type))){renderMediaPicker('Unsupported format. Please choose JPG, PNG, WebP, GIF, SVG, MP4 or WebM.','error');return;}
+    const input=$('#mediaPickerUpload');const label=$('#mediaDialog .mpu-header-upload');
+    pickerUploading=true;input.disabled=true;label.classList.add('is-uploading');
+    const refreshStatus=(text)=>{const feedback=$('#mpuFeedback');if(feedback){feedback.hidden=false;feedback.textContent=text;feedback.dataset.tone='progress';}};
+    let completed=0;
+    try{
+      const {upload}=await import('https://esm.sh/@vercel/blob@2.0.0/client');
+      for(const file of files){
+        refreshStatus(`Uploading ${completed+1} of ${files.length}: ${file.name}`);
+        const result=await upload(file.name,file,{access:'public',handleUploadUrl:'/api/upload'});
+        await post('media','create',{data:{url:result.url,pathname:result.pathname,filename:file.name,content_type:file.type,size_bytes:file.size,alt_text:file.name.replace(/\.[^.]+$/,'').replace(/[-_]/g,' ')}});
+        completed++;
+      }
+      state.media=await get('media');
+      renderMediaPicker(`${completed} file${completed===1?'':'s'} uploaded successfully. Choose an asset below to insert it.`,'success');
+      toast('Upload complete. Select your file below.');
+    }catch(error){
+      try{state.media=await get('media');}catch{}
+      renderMediaPicker(`${completed?`${completed} uploaded. `:''}${error.message||'Upload failed. Please try again.'}`,'error');
+      toast(error.message||'Media upload failed.',true);
+    }finally{
+      pickerUploading=false;input.disabled=false;input.value='';label.classList.remove('is-uploading');
+    }
+  }
+  $('#mediaPickerUpload').addEventListener('change',event=>uploadMediaPickerFiles(event.target.files));
   async function openMediaPicker(field,form){
     state.mediaTarget={field,form};
     try{state.media=await get('media');}catch(e){toast(e.message,true);return;}
-    const container=$('#mediaPicker');
-    container.innerHTML=state.media.length?state.media.filter(x=>String(x.content_type||'').startsWith('image/')||/video|poster|background/.test(field)).map(item=>`<button type="button" class="media-pick" data-select-media="${item.id}">${String(item.content_type||'').startsWith('video/')?`<img src="/assets/favicon.svg" alt="Video file">`:`<img src="${esc(item.url)}" alt="${esc(item.alt_text||'')}">`}<span>${esc(item.filename||'Media')}</span></button>`).join(''):`<div class="empty-state">No media yet. Upload files from your Media library first.</div>`;
-    $$('[data-select-media]',container).forEach(b=>b.addEventListener('click',()=>{
-      const item=state.media.find(x=>String(x.id)===b.dataset.selectMedia);
-      const input=state.mediaTarget.form.elements[state.mediaTarget.field];
-      if(item&&input){input.value=item.url;input.dispatchEvent(new Event('input',{bubbles:true}));}
-      $('#mediaDialog').close();
-    }));
+    renderMediaPicker();
     $('#mediaDialog').showModal();
   }
   $$('[data-close-media]').forEach(b=>b.addEventListener('click',()=>$('#mediaDialog').close()));

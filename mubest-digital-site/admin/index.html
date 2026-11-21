@@ -11,6 +11,65 @@
   <link rel="stylesheet" href="/assets/cms-admin-overrides.css?v=2">
   <link rel="stylesheet" href="/assets/layout-builder-admin.css?v=1">
   <link rel="stylesheet" href="/assets/studio4-nav.css?v=4">
+<style id="mpu-studio-integrated-styles">
+.media-dialog{width:min(920px,calc(100vw - 28px));max-height:min(92vh,900px);overflow:hidden}
+.media-dialog .dialog-head{align-items:center;padding:22px 25px;gap:10px}
+.media-dialog .dialog-head h2{font-size:21px;margin:4px 0}
+.media-dialog .dialog-head p{font-size:10px;line-height:1.5}
+.media-dialog .mpu-head-actions{display:flex;align-items:center;gap:10px;flex:none}
+.media-dialog .mpu-header-upload{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;font-size:10px;padding:11px 14px;cursor:pointer}
+.media-dialog .mpu-header-upload.is-uploading{opacity:.6;pointer-events:none}
+.media-dialog #mediaPickerUpload[hidden]{display:none}
+.media-dialog .media-picker{display:block;max-height:min(69vh,650px);overflow-y:auto;padding:22px 25px;scrollbar-width:thin}
+.mpu-intro{margin:0}
+.mpu-drop{display:flex;align-items:center;gap:15px;min-height:106px;padding:20px;border:1.5px dashed #cbd4e6;border-radius:13px;background:#f7f9fe;cursor:pointer;transition:background .2s,border-color .2s}
+.mpu-drop:hover,.mpu-drop.is-dragging{background:#eef2ff;border-color:#4563f5}
+.mpu-drop-mark{width:47px;height:47px;display:grid;place-items:center;flex:none;border-radius:13px;background:#e8edff;color:#4563f5}
+.mpu-drop-mark svg{width:21px;height:21px}
+.mpu-drop-copy{min-width:0;flex:1}
+.mpu-drop-copy strong{display:block;margin-bottom:6px;color:#283244;font-size:12px;font-weight:850}
+.mpu-drop-copy small{display:block;color:#8592a3;font-size:10px;line-height:1.5}
+.mpu-browse{padding:10px 14px;border:1px solid #dce3ee;border-radius:9px;background:#fff;color:#405dd8;font-size:10px;font-weight:850;white-space:nowrap;cursor:pointer}
+.mpu-browse:hover{background:#f5f7ff}
+.mpu-toolbar{display:flex;align-items:center;justify-content:space-between;gap:15px;margin:20px 0 15px}
+.mpu-search{display:flex;align-items:center;gap:9px;width:min(340px,100%);padding:10px 13px;border:1px solid #e1e6ee;border-radius:10px;background:#fff}
+.mpu-search:focus-within{border-color:#8da0ff;box-shadow:0 0 0 3px rgba(69,99,245,.1)}
+.mpu-search svg{width:16px;height:16px;color:#77869a}
+.mpu-search input{flex:1;min-width:0;border:none;outline:0;font-size:11px;color:#243047;background:transparent}
+.mpu-count{color:#8c96a5;font-size:10px;white-space:nowrap}
+.mpu-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.mpu-tile{display:block;min-width:0;overflow:hidden;padding:0;border:1px solid #e2e7ef;border-radius:12px;background:#fff;text-align:left;cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s}
+.mpu-tile:hover{transform:translateY(-2px);border-color:#4563f5;box-shadow:0 10px 22px rgba(32,51,90,.08)}
+.mpu-thumb{height:133px;display:grid;place-items:center;overflow:hidden;background:#f3f5fa}
+.mpu-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.mpu-video-icon{display:grid;place-items:center;width:48px;height:48px;border-radius:12px;background:#e8edff;color:#4563f5}
+.mpu-video-icon svg{width:25px;height:25px}
+.mpu-filename{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:11px 10px 3px;color:#333c4e;font-size:10px;font-weight:760}
+.mpu-insert{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:4px 10px 12px;color:#6275ae;font-size:9px;font-weight:750}
+.mpu-insert svg{width:14px;height:14px}
+.mpu-feedback{margin:-2px 0 14px;padding:11px 13px;border-radius:10px;background:#eef2ff;color:#4762cb;font-size:10px;line-height:1.6}
+.mpu-feedback[data-tone=error]{background:#fff3f3;color:#ad3b4c}
+.mpu-feedback[data-tone=success]{background:#f1f8e9;color:#53763d}
+.mpu-feedback[hidden]{display:none!important}
+.mpu-empty{padding:25px 16px;border:1px dashed #dce4ef;border-radius:12px;text-align:center;background:#fafbfd}
+.mpu-empty strong{display:block;margin:0 0 6px;color:#394558;font-size:12px}
+.mpu-empty p{margin:0;color:#8390a2;font-size:10px;line-height:1.6}
+@media(max-width:650px){
+ .media-dialog .dialog-head{padding:16px;align-items:flex-start}
+ .media-dialog .dialog-head h2{font-size:18px}
+ .media-dialog .mpu-head-actions{gap:5px}
+ .media-dialog .mpu-header-upload{font-size:9px;padding:9px 9px}
+ .media-dialog .media-picker{padding:15px}
+ .mpu-drop{gap:10px;flex-wrap:wrap;padding:14px}
+ .mpu-drop-mark{width:36px;height:36px;border-radius:9px}
+ .mpu-drop-copy{flex-basis:calc(100% - 48px)}
+ .mpu-browse{margin-left:46px}
+ .mpu-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .mpu-thumb{height:115px}
+ .mpu-toolbar{margin:16px 0 12px}
+ .mpu-search{width:100%}
+}
+</style>
 </head>
 <body class="admin-body">
   <svg class="symbol-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
@@ -70,9 +129,8 @@
     </div>
   </div>
   <dialog id="editorDialog" class="admin-dialog"><form id="editorForm" method="dialog"><div class="dialog-head"><div><span class="eyebrow">CONTENT EDITOR</span><h2 id="editorTitle">Edit item</h2><p>Changes are saved securely to your content studio.</p></div><button type="button" class="icon-button" data-close-dialog aria-label="Close">×</button></div><div id="editorFields" class="dialog-fields"></div><div class="dialog-actions"><button type="button" class="admin-button ghost" data-close-dialog>Cancel</button><button type="submit" class="admin-button primary">Save changes <svg><use href="#i-check"/></svg></button></div></form></dialog>
-  <dialog id="mediaDialog" class="admin-dialog media-dialog"><div class="dialog-head"><div><span class="eyebrow">MEDIA LIBRARY</span><h2>Choose an image</h2><p>Select an uploaded asset to use on your site.</p></div><button type="button" class="icon-button" data-close-media aria-label="Close">×</button></div><div id="mediaPicker" class="media-picker"></div></dialog>
+  <dialog id="mediaDialog" class="admin-dialog media-dialog"><div class="dialog-head"><div><span class="eyebrow">YOUR MEDIA</span><h2>Choose or upload media</h2><p>Upload from your device, then select the file to use on your website.</p></div><div class="mpu-head-actions"><label for="mediaPickerUpload" class="admin-button primary mpu-header-upload">+ Upload media</label><button type="button" class="icon-button" data-close-media aria-label="Close">×</button></div></div><input id="mediaPickerUpload" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.svg,.mp4,.webm,image/jpeg,image/png,image/webp,image/gif,image/svg+xml,video/mp4,video/webm" multiple hidden><div id="mediaPicker" class="media-picker"></div></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="/assets/cms-admin.js?v=studio2" defer></script>
-  <script src="/assets/media-picker-upload.js?v=1" defer></script>
+  <script src="/assets/cms-admin.js?v=studio5" defer></script>
 </body>
 </html>

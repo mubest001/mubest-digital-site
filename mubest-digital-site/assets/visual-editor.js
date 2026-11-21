@@ -127,7 +127,7 @@
       fields.push(`<div class="ve-prop-group"><h3>Link</h3><label class="ve-prop-field"><span>Destination URL</span><input id="veHref" value="${value('href', selected.href || '')}" placeholder="/contact/ or https://..."></label></div>`);
     }
     if (selected.tag === 'img' || selected.tag === 'video' || selected.src || selected.addedId && ['image','video'].includes(added?.type)) {
-      fields.push(`<div class="ve-prop-group"><h3>Media</h3><label class="ve-prop-field"><span>Media URL</span><input id="veSrc" value="${value('src', selected.src || '')}" placeholder="https://... or /assets/..."></label>${selected.tag === 'img' || added?.type === 'image' ? `<label class="ve-prop-field"><span>Alternative text</span><input id="veAlt" value="${value('alt', selected.alt || '')}" placeholder="Describe the image"></label>` : ''}</div>`);
+      fields.push(`<div class="ve-prop-group"><h3>Media</h3><label class="ve-prop-field"><span>Media URL</span><input id="veSrc" value="${value('src', selected.src || '')}" placeholder="https://... or /assets/..."></label><div class="ve-media-property"><button type="button" id="veBrowseMedia" class="ve-media-browse">+ Choose or upload media</button><span>Select from your existing library or upload a new file.</span></div>${selected.tag === 'img' || added?.type === 'image' ? `<label class="ve-prop-field"><span>Alternative text</span><input id="veAlt" value="${value('alt', selected.alt || '')}" placeholder="Describe the image"></label>` : ''}</div>`);
     }
     fields.push(`<div class="ve-prop-group"><h3>Appearance</h3><div class="ve-prop-two"><label class="ve-prop-field"><span>Text colour</span><input id="veColor" type="color" value="${/^#[0-9a-f]{6}$/i.test(styles.color || selected.styles?.color || '') ? (styles.color || selected.styles.color) : '#17191f'}"></label><label class="ve-prop-field"><span>Background</span><input id="veBackground" type="color" value="${/^#[0-9a-f]{6}$/i.test(styles.backgroundColor || selected.styles?.backgroundColor || '') ? (styles.backgroundColor || selected.styles.backgroundColor) : '#ffffff'}"></label></div><div class="ve-prop-two"><label class="ve-prop-field"><span>Font size</span><input id="veFontSize" value="${value('fontSize', styles.fontSize || selected.styles?.fontSize || '')}" placeholder="e.g. 24px"></label><label class="ve-prop-field"><span>Width</span><input id="veWidth" value="${value('width', styles.width || selected.styles?.width || '')}" placeholder="e.g. 100%"></label></div><label class="ve-prop-field"><span>Text alignment</span><select id="veAlign"><option value="">Keep current</option>${['left','center','right','justify'].map(x => `<option value="${x}" ${(styles.textAlign || selected.styles?.textAlign) === x ? 'selected' : ''}>${x[0].toUpperCase()+x.slice(1)}</option>`).join('')}</select></label><div class="ve-prop-two"><label class="ve-prop-field"><span>Padding</span><input id="vePadding" value="${value('padding', styles.padding || selected.styles?.padding || '')}" placeholder="e.g. 16px"></label><label class="ve-prop-field"><span>Margin</span><input id="veMargin" value="${value('margin', styles.margin || selected.styles?.margin || '')}" placeholder="e.g. 12px 0"></label></div><label class="ve-prop-field"><span>Corner radius</span><input id="veRadius" value="${value('borderRadius', styles.borderRadius || selected.styles?.borderRadius || '')}" placeholder="e.g. 12px"></label></div>`);
     fields.push(`<div class="ve-prop-group"><h3>Visibility & actions</h3><label class="ve-prop-toggle"><input id="veHidden" type="checkbox" ${patch.hidden === true ? 'checked' : ''}> Hide this element on the live page</label><div class="ve-prop-actions"><button id="veDelete" class="danger" type="button">Delete / hide element</button></div></div>`);
@@ -137,11 +137,123 @@
     $('#veBody')?.addEventListener('input', e => updateSelected('body', e.target.value));
     $('#veHref')?.addEventListener('change', e => updateSelected('href', e.target.value));
     $('#veSrc')?.addEventListener('change', e => updateSelected('src', e.target.value));
+    $('#veBrowseMedia')?.addEventListener('click', openVisualMediaLibrary);
     $('#veAlt')?.addEventListener('input', e => updateSelected('alt', e.target.value));
     const styleBindings = [['veColor','color'],['veBackground','backgroundColor'],['veFontSize','fontSize'],['veWidth','width'],['veAlign','textAlign'],['vePadding','padding'],['veMargin','margin'],['veRadius','borderRadius']];
     styleBindings.forEach(([id,key]) => $(`#${id}`)?.addEventListener('input', e => updateSelected(key, e.target.value, true)));
     $('#veHidden')?.addEventListener('change', e => updateSelected('hidden', e.target.checked));
     $('#veDelete')?.addEventListener('click', deleteSelected);
+  }
+  // Media library for the visual builder. Uses the SAME persisted assets as Content Studio.
+  let visualMediaDialog=null;
+  let visualMediaItems=[];
+  let visualMediaBusy=false;
+  function ensureVisualMediaDialog(){
+    if(visualMediaDialog)return visualMediaDialog;
+    const css=document.createElement('style');css.id='ve-integrated-media-styles';css.textContent=`
+      .ve-media-property{display:flex;flex-direction:column;gap:6px;margin:-4px 0 13px}
+      .ve-media-browse{border:1px solid #ced6ff;background:#f4f6ff;color:#3d56cc;border-radius:9px;padding:10px 12px;font-size:10px;font-weight:850;cursor:pointer;text-align:center}
+      .ve-media-browse:hover{background:#ebefff;border-color:#4563f5}
+      .ve-media-property span{color:#8a93a0;font-size:9px;line-height:1.6}
+      .ve-media-dialog{width:min(800px,calc(100vw - 28px));max-height:89vh;border:1px solid #e5e9ef;border-radius:16px;background:#fff;box-shadow:0 25px 75px rgba(13,20,34,.2);padding:0;color:#263144;font-family:Inter,Arial,sans-serif;overflow:hidden}
+      .ve-media-dialog::backdrop{background:rgba(16,23,35,.62);backdrop-filter:blur(5px)}
+      .ve-media-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:21px 22px;border-bottom:1px solid #eaedf1}
+      .ve-media-head b{display:block;font-size:16px;letter-spacing:-.035em}
+      .ve-media-head small{display:block;margin-top:6px;color:#919aaa;font-size:10px}
+      .ve-media-actions{display:flex;align-items:center;gap:8px}
+      .ve-media-actions label{display:inline-flex;justify-content:center;align-items:center;padding:10px 14px;border-radius:9px;background:#4563f5;color:#fff;font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap}
+      .ve-media-actions button{width:30px;height:30px;display:grid;place-items:center;border:1px solid #e2e7ef;border-radius:50%;background:#fff;color:#4a5568;font-size:18px;cursor:pointer}
+      .ve-media-body{padding:20px;overflow-y:auto;max-height:69vh}
+      .ve-media-drop{display:flex;align-items:center;gap:13px;padding:18px;border:1.5px dashed #cbd4e6;border-radius:12px;background:#f7f9fd;cursor:pointer}
+      .ve-media-drop:hover,.ve-media-drop.dragging{border-color:#4563f5;background:#f1f4ff}
+      .ve-media-drop-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:11px;background:#e7edff;color:#4563f5;font-size:20px}
+      .ve-media-drop b{display:block;font-size:11px}.ve-media-drop span{display:block;margin-top:5px;color:#8994a2;font-size:9px;line-height:1.5}
+      .ve-media-search{width:100%;min-height:39px;margin:15px 0;padding:0 13px;border:1px solid #e0e5ed;border-radius:9px;background:#fff;outline:none;font-size:11px}
+      .ve-media-search:focus{border-color:#4563f5;box-shadow:0 0 0 3px rgba(69,99,245,.1)}
+      .ve-media-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
+      .ve-media-tile{overflow:hidden;border:1px solid #e2e6ee;border-radius:10px;background:#fff;padding:0;text-align:left;cursor:pointer}
+      .ve-media-tile:hover{border-color:#4563f5;box-shadow:0 8px 17px rgba(30,48,80,.09)}
+      .ve-media-thumb{height:112px;display:grid;place-items:center;background:#f2f4f8;color:#4563f5;font-size:24px}
+      .ve-media-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+      .ve-media-name{display:block;padding:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#364252;font-size:10px;font-weight:750}
+      .ve-media-status{margin:0 0 13px;border-radius:8px;background:#eef2ff;color:#3856b9;padding:9px 11px;font-size:10px}
+      .ve-media-status.error{background:#fff3f3;color:#b34252}
+      .ve-media-empty{padding:30px;text-align:center;color:#8a94a1;background:#fafbfd;border:1px dashed #dce2ed;border-radius:10px;font-size:10px;line-height:1.6}
+      @media(max-width:550px){.ve-media-head{padding:14px}.ve-media-head b{font-size:14px}.ve-media-actions{gap:5px}.ve-media-actions label{padding:9px;font-size:9px}.ve-media-body{padding:12px}.ve-media-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ve-media-thumb{height:112px}.ve-media-drop{padding:12px}}
+    `;document.head.appendChild(css);
+    visualMediaDialog=document.createElement('dialog');
+    visualMediaDialog.id='veMediaDialog';visualMediaDialog.className='ve-media-dialog';
+    visualMediaDialog.innerHTML=`<div class="ve-media-head"><div><b>Choose or upload media</b><small>Use an image or video in your page design.</small></div><div class="ve-media-actions"><label for="veMediaFile">+ Upload</label><button type="button" data-vem-close aria-label="Close">×</button></div></div><div class="ve-media-body"><div class="ve-media-drop" tabindex="0" role="button"><span class="ve-media-drop-icon" aria-hidden="true">↑</span><div><b>Upload from your computer</b><span>Drag and drop or click here · Max 50 MB per file</span></div></div><input id="veMediaSearch" type="search" class="ve-media-search" placeholder="Search your media library..." aria-label="Search media"><div id="veMediaFeedback" class="ve-media-status" hidden></div><div id="veMediaResults" class="ve-media-grid"></div></div><input type="file" id="veMediaFile" accept=".jpg,.jpeg,.png,.webp,.gif,.svg,.mp4,.webm,image/jpeg,image/png,image/webp,image/gif,image/svg+xml,video/mp4,video/webm" multiple hidden>`;
+    document.body.appendChild(visualMediaDialog);
+    $('[data-vem-close]',visualMediaDialog).addEventListener('click',()=>visualMediaDialog.close());
+    $('#veMediaSearch',visualMediaDialog).addEventListener('input',drawVisualMedia);
+    const input=$('#veMediaFile',visualMediaDialog);
+    input.addEventListener('change',event=>uploadVisualMediaFiles(event.target.files));
+    const drop=$('.ve-media-drop',visualMediaDialog);
+    drop.addEventListener('click',()=>input.click());
+    drop.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();input.click();}});
+    for(const name of ['dragenter','dragover'])drop.addEventListener(name,event=>{event.preventDefault();drop.classList.add('dragging');});
+    drop.addEventListener('dragleave',event=>{if(!drop.contains(event.relatedTarget))drop.classList.remove('dragging');});
+    drop.addEventListener('drop',event=>{event.preventDefault();drop.classList.remove('dragging');uploadVisualMediaFiles(event.dataTransfer?.files||[]);});
+    $('#veMediaResults',visualMediaDialog).addEventListener('click',event=>{
+      const button=event.target.closest('[data-media-id]');if(!button)return;
+      const item=visualMediaItems.find(x=>String(x.id)===button.dataset.mediaId);
+      if(!item||!selected){toast('Choose an element first.',true);return;}
+      updateSelected('src',item.url);
+      if((selected.tag==='img'||(selected.addedId&&layout.added.find(x=>x.id===selected.addedId)?.type==='image'))&&item.alt_text)updateSelected('alt',item.alt_text);
+      renderProperties();
+      visualMediaDialog.close();toast('Media inserted. Save draft or publish when ready.');
+    });
+    return visualMediaDialog;
+  }
+  function visualMediaStatus(message='',error=false){
+    if(!visualMediaDialog)return;
+    const node=$('#veMediaFeedback',visualMediaDialog);
+    node.hidden=!message;node.classList.toggle('error',error);node.textContent=message;
+  }
+  function drawVisualMedia(){
+    if(!visualMediaDialog)return;
+    const added=selected?.addedId?layout.added.find(x=>x.id===selected.addedId):null;
+    const video=selected?.tag==='video'||added?.type==='video';
+    const term=String($('#veMediaSearch',visualMediaDialog).value||'').trim().toLowerCase();
+    const items=visualMediaItems.filter(item=>{
+      const mime=String(item.content_type||'').toLowerCase();
+      const isCorrect=video?mime.startsWith('video/'):mime.startsWith('image/');
+      return isCorrect&&[item.filename,item.alt_text].join(' ').toLowerCase().includes(term);
+    });
+    $('#veMediaResults',visualMediaDialog).innerHTML=items.length?items.map(item=>`<button type="button" class="ve-media-tile" data-media-id="${esc(item.id)}"><span class="ve-media-thumb">${String(item.content_type||'').startsWith('image/')?`<img src="${esc(item.url)}" alt="${esc(item.alt_text||item.filename||'Media')}" loading="lazy">`:'▶'}</span><span class="ve-media-name">${esc(item.filename||'Media file')}</span></button>`).join(''):`<div class="ve-media-empty">No ${video?'videos':'images'} to display. Upload a file above to get started.</div>`;
+  }
+  async function openVisualMediaLibrary(){
+    const dialog=ensureVisualMediaDialog();
+    visualMediaStatus('Loading saved media...');
+    $('#veMediaSearch',dialog).value='';drawVisualMedia();dialog.showModal();
+    try{
+      const data=await request('/api/admin?resource=media');
+      visualMediaItems=Array.isArray(data.data)?data.data:[];
+      visualMediaStatus();drawVisualMedia();
+    }catch(error){visualMediaStatus(error.message||'Could not load media.',true);}
+  }
+  async function uploadVisualMediaFiles(filesInput){
+    if(visualMediaBusy)return;
+    const files=Array.from(filesInput||[]);if(!files.length)return;
+    const allowed=new Set(['image/jpeg','image/png','image/webp','image/gif','image/svg+xml','video/mp4','video/webm']);
+    if(files.some(file=>file.size>50*1024*1024)){visualMediaStatus('Each file must be 50 MB or smaller.',true);return;}
+    if(files.some(file=>!allowed.has(file.type))){visualMediaStatus('Unsupported file format. Choose JPG, PNG, WebP, GIF, SVG, MP4 or WebM.',true);return;}
+    const input=$('#veMediaFile',visualMediaDialog);input.disabled=true;visualMediaBusy=true;
+    let done=0;
+    try{
+      const {upload}=await import('https://esm.sh/@vercel/blob@2.0.0/client');
+      for(const file of files){
+        visualMediaStatus(`Uploading ${done+1} of ${files.length}: ${file.name}`);
+        const result=await upload(file.name,file,{access:'public',handleUploadUrl:'/api/upload'});
+        await request('/api/admin',{method:'POST',body:JSON.stringify({resource:'media',action:'create',data:{url:result.url,pathname:result.pathname,filename:file.name,content_type:file.type,size_bytes:file.size,alt_text:file.name.replace(/\.[^.]+$/,'').replace(/[-_]/g,' ')}})});
+        done++;
+      }
+      const data=await request('/api/admin?resource=media');
+      visualMediaItems=Array.isArray(data.data)?data.data:[];
+      visualMediaStatus(`${done} file${done===1?'':'s'} uploaded. Select one below to use it.`);drawVisualMedia();
+    }catch(error){visualMediaStatus(`${done?`${done} uploaded. `:''}${error.message||'Upload failed.'}`,true);}
+    finally{input.disabled=false;input.value='';visualMediaBusy=false;}
   }
   function deleteSelected() {
     if (!selected) return;
