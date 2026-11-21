@@ -2,7 +2,7 @@ import { ensureSchema, query, audit } from "../lib/db.js";
 import { requireAdmin, assertSameOrigin } from "../lib/auth.js";
 
 const PAGES = new Set(["home", "about", "services", "portfolio", "contact"]);
-const TYPES = new Set(["heading", "text", "image", "button", "video", "review", "section", "divider"]);
+const TYPES = new Set(["heading", "text", "image", "button", "video", "review", "section", "divider", "social"]);
 const STYLE_KEYS = new Set(["color", "backgroundColor", "fontSize", "fontWeight", "textAlign", "width", "maxWidth", "height", "minHeight", "padding", "paddingTop", "paddingBottom", "margin", "marginTop", "marginBottom", "marginLeft", "marginRight", "borderRadius", "objectFit", "alignSelf", "justifySelf", "display"]);
 const EMPTY = { version: 1, patches: [], added: [], moves: [] };
 const json = (res, status, data) => { res.setHeader("Cache-Control", "no-store"); return res.status(status).json(data); };
@@ -61,6 +61,12 @@ function cleanLayout(input) {
       href: item.href ? safeUrl(item.href, true) : "",
       src: item.src ? safeUrl(item.src) : "",
       alt: str(item.alt, 500),
+      links: type === "social" ? Object.fromEntries(
+        Object.entries(item.links && typeof item.links === "object" && !Array.isArray(item.links) ? item.links : {})
+          .filter(([key]) => ["instagram","linkedin","facebook","tiktok","youtube","x","pinterest","whatsapp"].includes(key))
+          .map(([key,value]) => [key, value ? safeUrl(value) : ""])
+          .filter(([key,value]) => /^https:\/\//i.test(value))
+      ) : {},
       styles: cleanStyles(item.styles),
       hidden: item.hidden === true
     };

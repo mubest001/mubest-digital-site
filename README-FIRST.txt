@@ -1,27 +1,45 @@
-MUBEST DIGITAL — PREMIUM VISUAL BUILDER V6
+MUBEST DIGITAL — SOCIAL ICONS & VISUAL BUILDER v7
+===================================================
 
-Change type: Frontend-only interface redesign for the visual builder.
+WHAT YOU GET
+• Footer social links show recognizable logos, NOT text names.
+• Existing Instagram / LinkedIn / Facebook / TikTok URLs remain intact.
+• New Contact & social URL fields: YouTube, X (Twitter), Pinterest.
+• Existing WhatsApp setting is used for the WhatsApp logo.
+• Visual Builder: draggable Social icons block. Edit each URL in Element Settings.
+• No fake social links: blank URLs hide their logos.
+• Icon-only links have accessible names and open in a new tab.
+• No database migration or new environment variables.
 
-This package contains:
-  mubest-digital-site/admin/visual-editor.html  (REPLACE existing file)
+UPLOAD INSTRUCTIONS (VERY IMPORTANT)
+Extract this ZIP. Upload the entire inner "mubest-digital-site" folder structure
+from the GitHub REPOSITORY ROOT, or open the existing nested folder and upload
+its CONTENTS into their exact subfolders. Do not create double nesting.
 
-HOW TO UPLOAD
-1. Download and extract the ZIP.
-2. In the GitHub repository mubest001/mubest-digital-site, navigate to:
-   mubest-digital-site/admin/
-3. REPLACE the existing visual-editor.html with the included visual-editor.html.
-   Do not upload the outer mubest-digital-site folder *inside* the existing one.
-4. Commit directly to main.
-5. In Vercel, confirm the new production deployment is READY.
-6. Hard refresh: https://mubestdigital.vercel.app/admin/visual-editor/
+Correct repo: https://github.com/mubest001/mubest-digital-site
+Deployed Vercel Root Directory: mubest-digital-site
 
-RETAINED BACKEND/FUNCTIONS
-- Existing assets/visual-editor.js is reused (cache-busted to v5).
-- Existing Vercel + Neon CMS APIs stay untouched.
-- Existing drag-to-move, inspector edits, Undo/Redo, Save Draft & Publish remain wired.
-- Builder component search, property-category tabs, and drag-from-library-to-canvas are added in this HTML.
+CHANGED FILES:
+  mubest-digital-site/assets/cms-public.js
+  mubest-digital-site/assets/cms-admin.js
+  mubest-digital-site/assets/visual-editor.js
+  mubest-digital-site/assets/visual-editor-bridge.js
+  mubest-digital-site/assets/visual-layout-runtime.js
+  mubest-digital-site/admin/visual-editor.html
+  mubest-digital-site/api/admin.js
+  mubest-digital-site/lib/defaults.js
+NEW FILES:
+  mubest-digital-site/assets/social-icons.css
+  mubest-digital-site/assets/social-icons/*.svg (eight icons)
 
-NOTES
-- GitHub connected accounts visible to ChatGPT do not have write permissions on the mubest001 repository.
-- Updating this HTML does not require environment-variable or database changes.
-- No website public pages or Search Console files are changed by this package.
+After all files are committed and Vercel shows READY:
+1. Hard refresh admin /admin/ and builder /admin/visual-editor/.
+2. Content Studio > Contact & social: set full HTTPS profile URLs and Save.
+3. Open website footer. See clickable social logos, no visible platform names.
+4. Visual Builder > Component Library > Social icons > add to page.
+5. Select social block and edit URLs in Element Settings.
+6. Save Draft or Publish (only Publish updates visitors).
+
+NOTE: These are public links. Do not enter private social account passwords.
+IMPORTANT: All original files were SHA-matched with the live GitHub main branch
+before changes. No Vercel settings, analytics, or Google Search Console edits.

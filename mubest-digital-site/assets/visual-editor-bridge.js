@@ -54,6 +54,8 @@
   }
   function editableTarget(node) {
     const el = node?.nodeType === 1 ? node : node?.parentElement;
+    const socialRoot=el?.closest?.('.vb-social-icons');
+    if(socialRoot && root.contains(socialRoot)) return socialRoot;
     if (!el || !root.contains(el) || el.closest('script,style,svg,nav,.site-header,.site-footer,#vb-selection-overlay')) return null;
     return el.closest('h1,h2,h3,h4,h5,p,li,a,button,img,video,blockquote,article,section,div') || el;
   }
@@ -139,6 +141,16 @@
     } else if (el.textContent !== value) el.textContent=value;
   }
   function applyStyles(el, styles) { if (!el || !styles) return; Object.entries(styles).forEach(([k,v]) => { if (v !== '') el.style[k]=v; }); }
+  const socialPlatformNames={instagram:'Instagram',linkedin:'LinkedIn',facebook:'Facebook',tiktok:'TikTok',youtube:'YouTube',x:'X',pinterest:'Pinterest',whatsapp:'WhatsApp'};
+  function socialUrl(raw){const v=String(raw||'').trim();return /^https?:\/\//i.test(v)?v:'';}
+  function drawSocial(el,links){
+    const values=Object.entries(socialPlatformNames).map(([id,label])=>({id,label,url:socialUrl(links?.[id])})).filter(x=>x.url);
+    const html=values.map(({id,label,url})=>`<a href="${url.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" target="_blank" rel="noopener noreferrer" aria-label="${label}" title="${label}"><img src="/assets/social-icons/${id}.svg" alt="" width="19" height="19"></a>`).join('') || '<span class="vb-social-empty">Add your social profile URLs in Element Settings</span>';
+    if(el.innerHTML!==html)el.innerHTML=html;
+  }
+  if(!document.querySelector('link[data-mubest-social]')){
+    const socialCss=document.createElement('link');socialCss.rel='stylesheet';socialCss.href='/assets/social-icons.css?v=7';socialCss.dataset.mubestSocial='1';document.head.appendChild(socialCss);
+  }
   function createBlock(item) {
     let el;
     if (item.type==='heading') { el=document.createElement('h2'); el.textContent=item.text||'Your new heading'; }
@@ -147,6 +159,7 @@
     else if (item.type==='button') { el=document.createElement('a'); el.href=item.href||'/contact/'; el.textContent=item.text||'Learn more'; el.className='button button-primary'; }
     else if (item.type==='video') { el=document.createElement('video'); el.src=item.src||''; el.controls=true; el.playsInline=true; el.style.maxWidth='100%'; }
     else if (item.type==='review') { el=document.createElement('blockquote'); el.textContent=item.text||'Add a client review here.'; }
+    else if (item.type==='social') { el=document.createElement('div'); el.className='vb-social-icons'; drawSocial(el,item.links); }
     else if (item.type==='divider') { el=document.createElement('hr'); }
     else { el=document.createElement('section'); el.className='vb-added-section'; const wrap=document.createElement('div'); wrap.className='container'; const h=document.createElement('h2'); h.textContent=item.text||'Your new section'; const p=document.createElement('p'); p.textContent=item.body||'Add supporting text for this section.'; wrap.append(h,p); el.appendChild(wrap); }
     el.dataset.vbAddedId=item.id; el.classList.add('vb-added-element'); applyStyles(el,item.styles); if(item.hidden)el.classList.add('vb-hidden-preview'); return el;
@@ -186,6 +199,7 @@
       if (item.href && el.tagName.toLowerCase() === 'a') el.href = item.href;
       if (item.src && ['img','video'].includes(el.tagName.toLowerCase())) el.src = item.src;
       if (item.alt && el.tagName.toLowerCase() === 'img') el.alt = item.alt;
+      if(item.type==='social')drawSocial(el,item.links);
       applyStyles(el, item.styles); if (item.hidden) el.style.display = 'none'; else if (item.hidden === false) el.style.removeProperty('display');
     });
     if (selected && selected.isConnected) positionOverlay();
@@ -208,7 +222,7 @@
       else {parent=root;before=null;}
       if(type==='section' && selected){const section=selected.closest('section');if(section?.parentElement){parent=section.parentElement;before=section.nextElementSibling;}}
       if(!parent || !root.contains(parent)) parent=root;
-      const item={id,type,parentSelector:selectorFor(parent),beforeSelector:before?selectorFor(before):'',text:({heading:'Your new heading',text:'Add your text here.',button:'Learn more',review:'Add a client review here.',section:'Your new section'}[type]||''),body:type==='section'?'Add supporting text for this section.':'',href:'/contact/',src:'',alt:'',styles:{}};
+      const item={id,type,links:type==='social'?{}:undefined,parentSelector:selectorFor(parent),beforeSelector:before?selectorFor(before):'',text:({heading:'Your new heading',text:'Add your text here.',button:'Learn more',review:'Add a client review here.',section:'Your new section'}[type]||''),body:type==='section'?'Add supporting text for this section.':'',href:'/contact/',src:'',alt:'',styles:{}};
       const el=createBlock(item);parent.insertBefore(el,before&&before.parentElement===parent?before:null);select(el);
       send({type:'vb:added',item,element:metadata(el)});
     }

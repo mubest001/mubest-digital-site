@@ -119,8 +119,11 @@
     const styles = patch.styles || {};
     const value = (key, fallback = '') => esc(patch[key] !== undefined ? patch[key] : fallback);
     const currentText = patch.text !== undefined ? patch.text : selected.text || '';
+    const socialPlatforms=[['instagram','Instagram'],['linkedin','LinkedIn'],['facebook','Facebook'],['tiktok','TikTok'],['youtube','YouTube'],['x','X / Twitter'],['pinterest','Pinterest'],['whatsapp','WhatsApp']];
+    const isSocial=added?.type==='social';
+
     const fields = [];
-    if (selected.editableText || selected.tag === 'a' || selected.tag === 'button' || selected.addedId) {
+    if (!isSocial && (selected.editableText || selected.tag === 'a' || selected.tag === 'button' || selected.addedId)) {
       fields.push(`<div class="ve-prop-group"><h3>Content</h3><label class="ve-prop-field"><span>Text / label</span><textarea id="veText" rows="4">${esc(currentText)}</textarea></label>${selected.addedId && ['section','review'].includes(added?.type) ? `<label class="ve-prop-field"><span>Supporting text</span><textarea id="veBody" rows="3">${value('body', added?.body || '')}</textarea></label>` : ''}</div>`);
     }
     if (selected.tag === 'a' || selected.href || selected.addedId && ['button'].includes(added?.type)) {
@@ -129,10 +132,28 @@
     if (selected.tag === 'img' || selected.tag === 'video' || selected.src || selected.addedId && ['image','video'].includes(added?.type)) {
       fields.push(`<div class="ve-prop-group"><h3>Media</h3><label class="ve-prop-field"><span>Media URL</span><input id="veSrc" value="${value('src', selected.src || '')}" placeholder="https://... or /assets/..."></label><div class="ve-media-property"><button type="button" id="veBrowseMedia" class="ve-media-browse">+ Choose or upload media</button><span>Select from your existing library or upload a new file.</span></div>${selected.tag === 'img' || added?.type === 'image' ? `<label class="ve-prop-field"><span>Alternative text</span><input id="veAlt" value="${value('alt', selected.alt || '')}" placeholder="Describe the image"></label>` : ''}</div>`);
     }
+    if (isSocial) {
+      const urls=added.links || {};
+      fields.push(`<div class="ve-prop-group"><h3>Social profile URLs</h3><p style="font-size:10px;color:#7b8594;line-height:1.6;margin:0 0 14px">Paste each social profile link. The preview and live website show only the platform logos. Leave unused links blank.</p>${socialPlatforms.map(([id,label])=>`<label class="ve-prop-field"><span>${esc(label)}</span><input class="ve-social-input" data-social-platform="${id}" type="url" value="${esc(urls[id] || '')}" placeholder="https://..." autocomplete="off"></label>`).join('')}</div>`);
+    }
     fields.push(`<div class="ve-prop-group"><h3>Appearance</h3><div class="ve-prop-two"><label class="ve-prop-field"><span>Text colour</span><input id="veColor" type="color" value="${/^#[0-9a-f]{6}$/i.test(styles.color || selected.styles?.color || '') ? (styles.color || selected.styles.color) : '#17191f'}"></label><label class="ve-prop-field"><span>Background</span><input id="veBackground" type="color" value="${/^#[0-9a-f]{6}$/i.test(styles.backgroundColor || selected.styles?.backgroundColor || '') ? (styles.backgroundColor || selected.styles.backgroundColor) : '#ffffff'}"></label></div><div class="ve-prop-two"><label class="ve-prop-field"><span>Font size</span><input id="veFontSize" value="${value('fontSize', styles.fontSize || selected.styles?.fontSize || '')}" placeholder="e.g. 24px"></label><label class="ve-prop-field"><span>Width</span><input id="veWidth" value="${value('width', styles.width || selected.styles?.width || '')}" placeholder="e.g. 100%"></label></div><label class="ve-prop-field"><span>Text alignment</span><select id="veAlign"><option value="">Keep current</option>${['left','center','right','justify'].map(x => `<option value="${x}" ${(styles.textAlign || selected.styles?.textAlign) === x ? 'selected' : ''}>${x[0].toUpperCase()+x.slice(1)}</option>`).join('')}</select></label><div class="ve-prop-two"><label class="ve-prop-field"><span>Padding</span><input id="vePadding" value="${value('padding', styles.padding || selected.styles?.padding || '')}" placeholder="e.g. 16px"></label><label class="ve-prop-field"><span>Margin</span><input id="veMargin" value="${value('margin', styles.margin || selected.styles?.margin || '')}" placeholder="e.g. 12px 0"></label></div><label class="ve-prop-field"><span>Corner radius</span><input id="veRadius" value="${value('borderRadius', styles.borderRadius || selected.styles?.borderRadius || '')}" placeholder="e.g. 12px"></label></div>`);
     fields.push(`<div class="ve-prop-group"><h3>Visibility & actions</h3><label class="ve-prop-toggle"><input id="veHidden" type="checkbox" ${patch.hidden === true ? 'checked' : ''}> Hide this element on the live page</label><div class="ve-prop-actions"><button id="veDelete" class="danger" type="button">Delete / hide element</button></div></div>`);
     fields.push(`<div class="ve-prop-summary"><b>Selected: ${esc(selected.tag || 'element')}</b><small>${esc(selected.selector || 'New block')}</small></div>`);
     properties.innerHTML = fields.join('');
+    $$('.ve-social-input',properties).forEach(input=>input.addEventListener('change',event=>{
+      if(!selected?.addedId)return;
+      const item=layout.added.find(x=>x.id===selected.addedId);
+      if(!item)return;
+      const next={...(item.links||{})};
+      const platform=input.dataset.socialPlatform;
+      const value=event.target.value.trim();
+      if(value && !/^https?:\/\//i.test(value)){
+        toast('Use a full URL beginning with https:// for '+platform+'.',true);
+        event.target.focus();return;
+      }
+      next[platform]=value;
+      updateSelected('links',next);
+    }));
     $('#veText')?.addEventListener('input', e => updateSelected('text', e.target.value));
     $('#veBody')?.addEventListener('input', e => updateSelected('body', e.target.value));
     $('#veHref')?.addEventListener('change', e => updateSelected('href', e.target.value));
@@ -313,6 +334,26 @@
       if (!layout.added.some(x => x.id === data.item.id)) layout.added.push(data.item);
       selected = data.element || { selector:`[data-vb-added-id="${data.item.id}"]`, tag:data.item.type, text:data.item.text, editableText:true, addedId:data.item.id };
       setDirty(); snapshot(); renderProperties(); applyToFrame();
+      if(data.item.type==='social'){
+        request('/api/admin?resource=settings').then(result=>{
+          const item=layout.added.find(x=>x.id===data.item.id);
+          if(!item)return;
+          const s=result.data||{};
+          const mapping={instagram:'social_instagram',linkedin:'social_linkedin',facebook:'social_facebook',tiktok:'social_tiktok',youtube:'social_youtube',x:'social_x',pinterest:'social_pinterest',whatsapp:'whatsapp'};
+          const links={...(item.links||{})};
+          for(const [platform,key] of Object.entries(mapping)){
+            const raw=String(s[key]||'').trim();
+            if(!raw)continue;
+            let url=raw;
+            if(platform==='whatsapp'&&!/^https?:\/\//i.test(raw)){
+              const digits=raw.replace(/[^0-9]/g,'');url=digits.length>=8&&digits.length<=15?'https://wa.me/'+digits:'';
+            }
+            if(/^https?:\/\//i.test(url)&&!links[platform])links[platform]=url;
+          }
+          item.links=links;
+          setDirty();snapshot();renderProperties();applyToFrame();
+        }).catch(()=>{/* Manual URLs remain editable if settings fail to load. */});
+      }
     }
     if (data.type === 'vb:moved') {
       layout.moves = layout.moves.filter(x => x.selector !== data.move.selector);

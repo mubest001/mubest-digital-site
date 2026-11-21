@@ -68,7 +68,7 @@
     ]},
     contactsettings:{intro:'Make it easy for people to contact you and find your profiles.',groups:[
       {title:'Contact details',description:'Used on your public Contact page.',fields:[['contact_email','Business email','email'],['phone','Phone number'],['whatsapp','WhatsApp URL or phone number'],['location','Service area / location']]},
-      {title:'Social profiles',description:'Link to official business profiles only.',fields:[['social_instagram','Instagram link','url'],['social_linkedin','LinkedIn link','url'],['social_facebook','Facebook link','url'],['social_tiktok','TikTok link','url']]}
+      {title:'Social profiles',description:'Add your profile URLs. Your website will show platform logos automatically; blank links stay hidden. WhatsApp uses the number or URL in Contact details.',fields:[['social_instagram','Instagram link','url'],['social_linkedin','LinkedIn link','url'],['social_facebook','Facebook link','url'],['social_tiktok','TikTok link','url'],['social_youtube','YouTube channel link','url'],['social_x','X / Twitter profile link','url'],['social_pinterest','Pinterest profile link','url']]}
     ]}
   };
 

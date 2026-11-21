@@ -312,16 +312,33 @@
     setText(".site-footer .footer-bottom > span:last-child",settings.footer_note);
     setLink(document.querySelector(".site-footer .footer-col:last-child a:first-of-type"),settings.footer_cta_label);
 
-    const footer=document.querySelector(".site-footer .footer-top");
-    if(footer) {
-      const social=[["Instagram",settings.social_instagram],["LinkedIn",settings.social_linkedin],["Facebook",settings.social_facebook],["TikTok",settings.social_tiktok]].filter(x=>safeUrl(x[1]));
-      if(social.length) {
-        let col=footer.querySelector(".footer-col:last-child");
-        if(col) {
-          const links=document.createElement("div");links.className="cms-social-links";
-          links.innerHTML=social.map(([label,url])=>`<a href="${esc(safeUrl(url))}" target="_blank" rel="noopener noreferrer">${esc(label)} ↗</a>`).join("");
-          col.appendChild(links);
-        }
+    // Social links use platform logo SVG assets, with accessible names for screen readers.
+    // Hide platforms without valid URLs; existing four stored social links are preserved.
+    const socialStyles=document.querySelector('link[data-mubest-social]');
+    if(!socialStyles){const link=document.createElement('link');link.rel='stylesheet';link.href='/assets/social-icons.css?v=7';link.dataset.mubestSocial='1';document.head.appendChild(link);}
+    const platforms=[
+      ['instagram','Instagram',settings.social_instagram],
+      ['linkedin','LinkedIn',settings.social_linkedin],
+      ['facebook','Facebook',settings.social_facebook],
+      ['tiktok','TikTok',settings.social_tiktok],
+      ['youtube','YouTube',settings.social_youtube],
+      ['x','X',settings.social_x],
+      ['pinterest','Pinterest',settings.social_pinterest],
+      ['whatsapp','WhatsApp',settings.whatsapp]
+    ];
+    const social=platforms.map(([id,label,raw])=>{
+      let url=safeUrl(raw);
+      if(id==='whatsapp' && !url && raw){const digits=String(raw).replace(/[^0-9]/g,'');if(digits.length>=8 && digits.length<=15)url='https://wa.me/'+digits;}
+      return {id,label,url};
+    }).filter(x=>x.url && /^https?:\/\//i.test(x.url));
+    const footer=document.querySelector('.site-footer .footer-top');
+    if(footer){
+      const col=footer.querySelector('.footer-col:last-child');
+      if(col){
+        let links=col.querySelector('.cms-social-links');
+        if(!links){links=document.createElement('div');links.className='cms-social-links';links.setAttribute('aria-label','Follow Mubest Digital');col.appendChild(links);}
+        links.innerHTML=social.map(({id,label,url})=>`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(label)}" title="${esc(label)}"><img src="/assets/social-icons/${id}.svg" alt="" width="19" height="19" loading="lazy"></a>`).join('');
+        links.hidden=!social.length;
       }
     }
   }
