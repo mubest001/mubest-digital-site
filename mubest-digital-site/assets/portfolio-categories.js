@@ -46,7 +46,7 @@ export function initPortfolioCategories(projects, settings={}) {
     menu.id='md-portfolio-submenu';
     menu.className='md-portfolio-submenu';
     menu.setAttribute('aria-label','Portfolio categories');
-    menu.innerHTML='<a class="md-portfolio-all" href="/portfolio/">All projects</a>'+activeCategories.map(name=>'<a href="/portfolio/?category='+encodeURIComponent(slug(name))+'#portfolio-projects">'+esc(name)+'<small>'+counts.get(name)+'</small></a>').join('');
+    menu.innerHTML='<a class="md-portfolio-all" href="/portfolio/">All projects</a>'+activeCategories.map(name=>'<a href="/portfolio/?category='+encodeURIComponent(slug(name))+'#portfolio-projects">'+esc(name)+'</a>').join('');
     wrapper.appendChild(menu);
     const close = () => {wrapper.classList.remove('is-open');button.setAttribute('aria-expanded','false');};
     button.addEventListener('click',event=>{
