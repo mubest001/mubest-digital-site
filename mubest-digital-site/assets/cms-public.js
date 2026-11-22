@@ -202,7 +202,7 @@
     renderPortfolio(data.portfolio,document.querySelector(".portfolio-grid"));
     try { const motion = await import("/assets/portfolio-motion.js?v=3"); motion.applyPortfolioMotion(settings); }
     catch(error) { console.warn("Portfolio motion could not load:",error); }
-    try { const categories = await import("/assets/portfolio-categories.js?v=1"); categories.initPortfolioCategories(data.portfolio,settings); }
+    try { const categories = await import("/assets/portfolio-categories.js?v=2"); categories.initPortfolioCategories(data.portfolio,settings); }
     catch(error) { console.warn("Portfolio categories could not load:",error); }
 
     const aboutImage=settings.about_image_url||page.about_image_url||"";
