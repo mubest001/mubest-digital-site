@@ -11,8 +11,8 @@
   const safeUrl=value=>{const v=String(value||'').trim();return /^https?:\/\//i.test(v)||(/^\/(?!\/)/.test(v))?v:'';};
   const toast=(message,error=false)=>{const el=$('#toast');if(!el)return;el.textContent=message;el.className='toast show'+(error?' error':'');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.className='toast',4000);};
   const state={view:'overview',data:{},page:'home',pageRows:[],filter:'all',search:'',media:[],editorResource:null,editorItem:null,mediaTarget:null,settings:{}};
-  const titles={overview:'Overview',leads:'Enquiries',pages:'Pages',portfolio:'Portfolio',services:'Services',testimonials:'Testimonials',faqs:'FAQs',media:'Media library',branding:'Brand identity',homepage:'Homepage & hero',navigation:'Header & footer',seo:'SEO & sharing',contactsettings:'Contact & social',activity:'Activity & revisions',layout:'Visual layout builder',portfoliodesign:'Portfolio appearance'};
-  const settingsViews=['branding','homepage','navigation','seo','contactsettings','layout','portfoliodesign'];
+  const titles={overview:'Overview',leads:'Enquiries',pages:'Pages',portfolio:'Portfolio',services:'Services',testimonials:'Testimonials',faqs:'FAQs',media:'Media library',branding:'Brand identity',homepage:'Homepage & hero',navigation:'Header & footer',seo:'SEO & sharing',contactsettings:'Contact & social',activity:'Activity & revisions',layout:'Visual layout builder',portfoliodesign:'Portfolio appearance',portfoliocategories:'Portfolio categories'};
+  const settingsViews=['branding','homepage','navigation','seo','contactsettings','layout','portfoliodesign','portfoliocategories'];
   const pageUrl={home:'/',about:'/about/',services:'/services/',portfolio:'/portfolio/',contact:'/contact/'};
 
   const pageGroups={
@@ -40,7 +40,7 @@
   Object.keys(pageGroups).forEach(page=>pageGroups[page].push({title:'Page SEO',description:'Control how this page appears in search results.',fields:[['seo_title','SEO page title'],['seo_description','Meta description','textarea']]}));
 
   const recordFields={
-    portfolio:[['title','Project title'],['slug','Project URL slug'],['category','Industry / platform'],['excerpt','Short summary','textarea'],['description','Project overview','textarea'],['role','Your role / contribution'],['project_type','Project type'],['year','Year (optional)'],['duration','Duration (optional)'],['services_used','Services provided (one per line)','textarea'],['skills_used','Skills / tools used (one per line)','textarea'],['deliverables','Deliverables (one per line)','textarea'],['challenge','Client challenge','textarea'],['goals','Goals','textarea'],['approach','Approach & process','textarea'],['solution','Work delivered','textarea'],['outcomes','Outcomes / results (only verified facts)','textarea'],['client_feedback','Client feedback (with permission)','textarea'],['cover_image','Cover image','image'],['gallery','Gallery images (one URL per line)','textarea'],['project_url','Optional live project URL','url'],['featured','Feature on homepage','checkbox'],['sort_order','Display order','number'],['status','Publication status','select',['draft','published','archived']]],
+    portfolio:[['title','Project title'],['slug','Project URL slug'],['category','Industry / platform'],['service_categories','Service categories','category-multiselect'],['excerpt','Short summary','textarea'],['description','Project overview','textarea'],['role','Your role / contribution'],['project_type','Project type'],['year','Year (optional)'],['duration','Duration (optional)'],['services_used','Services provided (one per line)','textarea'],['skills_used','Skills / tools used (one per line)','textarea'],['deliverables','Deliverables (one per line)','textarea'],['challenge','Client challenge','textarea'],['goals','Goals','textarea'],['approach','Approach & process','textarea'],['solution','Work delivered','textarea'],['outcomes','Outcomes / results (only verified facts)','textarea'],['client_feedback','Client feedback (with permission)','textarea'],['cover_image','Cover image','image'],['gallery','Gallery images (one URL per line)','textarea'],['project_url','Optional live project URL','url'],['featured','Feature on homepage','checkbox'],['sort_order','Display order','number'],['status','Publication status','select',['draft','published','archived']]],
     services:[['title','Service name'],['slug','Anchor / URL slug'],['summary','Service card summary','textarea'],['description','Full service details','textarea'],['tag','Keywords / service tags'],['icon','Service category icon','select',['website','email','video','ecommerce','book','ads']],['deliverables','Included deliverables (one per line)','textarea'],['sort_order','Display order','number'],['status','Publication status','select',['draft','published','archived']]],
     testimonials:[['name','Client name'],['role','Job title'],['company','Company / business'],['quote','Client feedback','textarea'],['avatar_url','Portrait image','image'],['rating','Rating (1–5)','number'],['sort_order','Display order','number'],['status','Publication status','select',['draft','published','archived']]],
     faqs:[['question','Question','textarea'],['answer','Answer','textarea'],['sort_order','Display order','number'],['status','Publication status','select',['draft','published','archived']]]
@@ -48,6 +48,9 @@
 
   // These keys are persisted to Neon site_settings, then read by public-content.
   const settingGroups={
+    portfoliocategories:{intro:'Organize your portfolio by service. These categories appear in the website Portfolio dropdown and on the portfolio page.',groups:[
+      {title:'Service categories',description:'Enter one service category per line. Use clear names clients will recognize. Assign categories to projects in Portfolio → Edit project.',fields:[['portfolio_service_categories','Category names (one per line)','textarea']]}
+    ]},
     portfoliodesign:{intro:'Control your portfolio layout and choose a modern motion style. Preview each hover effect before publishing.',groups:[
       {title:'Portfolio grid layout',description:'Choose the number of projects in each row. Desktop defaults to three, tablet to two, and mobile to one.',fields:[
         ['portfolio_columns_desktop','Projects per row · desktop','select',['1','2','3','4','5']],
@@ -142,6 +145,10 @@
     try{
       const resource=settingsViews.includes(view)?'settings':view;
       state.data=await get(resource);
+      if(view==='portfolio' && !Array.isArray(state.settings.portfolio_service_categories)){
+        const saved=await get('settings');
+        state.settings={...state.settings,...saved};
+      }
       if(resource==='settings'){state.settings=state.data;applyAdminBrand(state.settings);}
       renderView();
       if(view==='overview'){
@@ -198,18 +205,21 @@
     }[resource];
     const list=Array.isArray(items)?items:[];
     const filters=['all','published','draft','archived'];
+    const categories=resource==='portfolio'&&Array.isArray(state.settings.portfolio_service_categories)?state.settings.portfolio_service_categories:[];
     panel.innerHTML=heading(config[0],config[1],`<button class="admin-button primary" id="addRecord">${icon('plus')} ${config[2]}</button>`)+
-      `<div class="collection-toolbar"><div class="toolbar-left"><div class="search-field">${icon('search')}<input id="collectionSearch" type="search" placeholder="Search ${resource}..." aria-label="Search content"></div><select class="filter-select" id="collectionStatus" aria-label="Filter by status">${filters.map(f=>`<option value="${f}">${f==='all'?'All statuses':displayName(f)}</option>`).join('')}</select></div><span id="collectionCount" class="toolbar-count">${list.length} items</span></div>`+
+      (resource==='portfolio'?`<div class="md-portfolio-manage-link"><button type="button" class="admin-button ghost" id="managePortfolioCategories">${icon('grid')} Manage service categories</button></div>`:'')+
+      `<div class="collection-toolbar"><div class="toolbar-left"><div class="search-field">${icon('search')}<input id="collectionSearch" type="search" placeholder="Search ${resource}..." aria-label="Search content"></div><select class="filter-select" id="collectionStatus" aria-label="Filter by status">${filters.map(f=>`<option value="${f}">${f==='all'?'All statuses':displayName(f)}</option>`).join('')}</select>${resource==='portfolio'?'<select class="filter-select" id="collectionCategory" aria-label="Filter projects by service category"><option value="">All service categories</option>'+categories.map(name=>`<option value="${esc(name)}">${esc(name)}</option>`).join('')+'</select>':''}</div><span id="collectionCount" class="toolbar-count">${list.length} items</span></div>`+
       `<div id="collectionResults" class="panel-card" style="padding:8px 18px 17px"></div>`;
     $('#addRecord',panel).addEventListener('click',()=>openEditor(resource,null));
-    const input=$('#collectionSearch',panel), select=$('#collectionStatus',panel);
+    $('#managePortfolioCategories',panel)?.addEventListener('click',()=>loadView('portfoliocategories'));
+    const input=$('#collectionSearch',panel), select=$('#collectionStatus',panel), categorySelect=$('#collectionCategory',panel);
     function refresh(){
       const term=input.value.trim().toLowerCase(),filter=select.value;
-      const filtered=list.filter(x=>(filter==='all'||x.status===filter)&&[x.title,x.name,x.question,x.category,x.summary,x.excerpt,x.company,x.tag,x.slug].join(' ').toLowerCase().includes(term));
+      const filtered=list.filter(x=>(filter==='all'||x.status===filter)&&(!categorySelect||!categorySelect.value||(x.details?.service_categories||[]).includes(categorySelect.value))&&[x.title,x.name,x.question,x.category,x.summary,x.excerpt,x.company,x.tag,x.slug,...(x.details?.service_categories||[])].join(' ').toLowerCase().includes(term));
       $('#collectionCount',panel).textContent=`${filtered.length} of ${list.length} items`;
       $('#collectionResults',panel).innerHTML=filtered.length?`<div class="table-wrap"><table class="admin-table"><thead><tr><th>Content</th><th>${resource==='portfolio'?'Description':resource==='services'?'Deliverables':'Details'}</th><th>Status</th><th>Order</th><th>Actions</th></tr></thead><tbody>${filtered.map(item=>{
         const title=item.title||item.name||item.question;
-        const sub=item.category||item.company||item.slug||item.role||'';
+        const sub=resource==='portfolio'?[...(item.details?.service_categories||[]),item.category].filter(Boolean).join(' · '):(item.category||item.company||item.slug||item.role||'');
         const detail=item.excerpt||item.summary||item.quote||item.answer||'';
         const thumb=resource==='portfolio'?`<span class="project-row-thumb">${safeUrl(item.cover_image)?`<img src="${esc(safeUrl(item.cover_image))}" alt="" loading="lazy">`:esc(String(title||'M')[0])}</span>`:'';
         return `<tr><td><div class="content-identity">${thumb}<span><span class="table-title">${esc(short(title))}</span><span class="table-sub">${esc(short(sub))}</span></span></div></td><td><span class="table-sub">${esc(String(detail).slice(0,130))}</span></td><td>${statusPill(item.status)}</td><td>${esc(item.sort_order??'—')}</td><td><div class="row-actions">${resource==='portfolio'?`<a class="text-button" href="/portfolio/project/?slug=${encodeURIComponent(item.slug||'')}" target="_blank" rel="noopener noreferrer">View case study ↗</a>`:''}<button class="text-button" data-edit="${item.id}">${icon('edit')} Edit</button><button class="text-button delete" data-delete="${item.id}">Delete</button></div></td></tr>`;
@@ -217,12 +227,19 @@
       $$('[data-edit]',panel).forEach(b=>b.addEventListener('click',()=>openEditor(resource,list.find(x=>String(x.id)===b.dataset.edit))));
       $$('[data-delete]',panel).forEach(b=>b.addEventListener('click',()=>deleteItem(resource,b.dataset.delete)));
     }
-    input.addEventListener('input',refresh);select.addEventListener('change',refresh);refresh();
+    input.addEventListener('input',refresh);select.addEventListener('change',refresh);categorySelect?.addEventListener('change',refresh);refresh();
   }
 
   function fieldHtml(field,value){
     const [name,label,type='text',options]=field;
     const raw=Array.isArray(value)?value.join('\n'):value??'';
+    if(type==='category-multiselect'){
+      const assigned=Array.isArray(value)?value:[];
+      const configured=Array.isArray(state.settings.portfolio_service_categories)?state.settings.portfolio_service_categories:[];
+      const options=[...new Set([...configured,...assigned])];
+      const choices=options.map(name=>`<label class="md-service-category-choice"><input type="checkbox" name="service_categories" value="${esc(name)}" ${assigned.includes(name)?'checked':''}><span>${esc(name)}</span></label>`).join('');
+      return `<div class="editor-field full md-service-category-field"><label>Service categories</label><p>Select one or more services for this project. These control the portfolio filters and dropdown navigation.</p><div class="md-service-category-choices">${choices||'<span>No categories configured. Add them under Portfolio categories in the sidebar.</span>'}</div><small>Edit the list in Content Studio → Portfolio categories.</small></div>`;
+    }
     if(type==='textarea')return `<div class="editor-field full"><label for="field-${esc(name)}">${esc(label)}</label><textarea id="field-${esc(name)}" name="${esc(name)}" rows="4" placeholder="Write here...">${esc(raw)}</textarea></div>`;
     if(type==='checkbox')return `<div class="editor-field full"><label class="check-field"><input type="checkbox" name="${esc(name)}" ${raw===true||raw==='true'?'checked':''}> <span>${esc(label)}</span></label></div>`;
     if(type==='select')return `<div class="editor-field"><label for="field-${esc(name)}">${esc(label)}</label><select id="field-${esc(name)}" name="${esc(name)}">${options.map(o=>`<option value="${esc(o)}" ${String(raw)===o?'selected':''}>${esc(displayName(o))}</option>`).join('')}</select></div>`;
@@ -243,9 +260,9 @@
   $('#editorForm').addEventListener('submit',async e=>{
     e.preventDefault();const form=e.currentTarget,resource=form.dataset.resource,fields=recordFields[resource];
     const data={id:form.dataset.id||undefined};
-    fields.forEach(f=>{const [key,,type='text']=f,el=form.elements[key];if(!el)return;data[key]=type==='checkbox'?el.checked:type==='number'?Number(el.value||0):['gallery','deliverables','services_used','skills_used'].includes(key)?el.value.split(/\r?\n/).map(v=>v.trim()).filter(Boolean):el.value;});
+    fields.forEach(f=>{const [key,,type='text']=f,el=form.elements[key];if(type==='category-multiselect'){data[key]=$$('input[name="service_categories"]:checked',form).map(el=>el.value);return;}if(!el)return;data[key]=type==='checkbox'?el.checked:type==='number'?Number(el.value||0):['gallery','deliverables','services_used','skills_used'].includes(key)?el.value.split(/\r?\n/).map(v=>v.trim()).filter(Boolean):el.value;});
     if(resource==='portfolio'){
-      const extra=['role','project_type','year','duration','services_used','skills_used','deliverables','challenge','goals','approach','solution','outcomes','client_feedback'];
+      const extra=['role','project_type','year','duration','services_used','skills_used','deliverables','service_categories','challenge','goals','approach','solution','outcomes','client_feedback'];
       data.details=Object.fromEntries(extra.map(k=>[k,data[k]]));extra.forEach(k=>delete data[k]);
     }
     const button=form.querySelector('[type="submit"]');button.disabled=true;
@@ -401,7 +418,7 @@
         g.fields.map(field=>{
           const [key,label,type='text',options]=field;
           const val=settings[key]!==undefined?settings[key]:({hero_video_enabled:true,show_home_services:true,show_home_work:true,show_home_process:true,show_home_about:true,show_home_faq:true,show_home_testimonials:true,show_home_cta:true}[key]??'');
-          const raw=String(val??'');
+          const raw=Array.isArray(val)?val.join('\n'):String(val??'');
           if(type==='checkbox')return `<label class="full"><input type="checkbox" name="${esc(key)}" ${val===true||val==='true'?'checked':''}> <span>${esc(label)}</span></label>`;
           if(type==='textarea')return `<label class="full">${esc(label)}<textarea name="${esc(key)}" rows="4">${esc(raw)}</textarea></label>`;
           if(type==='select')return `<label>${esc(label)}<select name="${esc(key)}">${options.map(o=>`<option value="${esc(o)}" ${val===o?'selected':''}>${esc(o)}</option>`).join('')}</select></label>`;
@@ -433,7 +450,7 @@
         e.preventDefault();const data=Object.fromEntries(new FormData(form).entries());
         $$('input[type="checkbox"]',form).forEach(el=>{data[el.name]=el.checked;});
         const submit=form.querySelector('[type="submit"]');submit.disabled=true;
-        try{await post('settings','save',{data});Object.assign(state.settings,data);applyAdminBrand(state.settings);toast('Website settings saved.');}
+        try{await post('settings','save',{data});Object.assign(state.settings,data);applyAdminBrand(state.settings);toast('Website settings saved.');if(view==='portfoliocategories')await loadView('portfoliocategories');}
         catch(error){toast(error.message,true);}finally{submit.disabled=false;}
       });
     });

@@ -12,7 +12,7 @@ const PUBLIC_SETTINGS = [
   "show_home_cta","header_cta_label","header_cta_url","nav_home_label",
   "nav_about_label","nav_services_label","nav_portfolio_label","nav_contact_label",
   "announcement_enabled","announcement_text","announcement_link_label","announcement_url",
-  "footer_tagline","footer_note","footer_cta_label","layout_sections","analytics_script_url"
+  "footer_tagline","footer_note","footer_cta_label","layout_sections","portfolio_service_categories","analytics_script_url"
 ];
 
 export default async function handler(req, res) {

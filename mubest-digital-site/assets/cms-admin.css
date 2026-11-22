@@ -74,3 +74,15 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 @media(max-width:780px){.md-preview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:500px){.md-preview-grid{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.md-preview-card{animation:none!important;transition:none!important;transform:none!important}}
+
+/* Portfolio service-category editor and manager */
+.md-service-category-field>p{margin:5px 0 12px;color:#667185;font-size:12px;line-height:1.6}
+.md-service-category-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:12px}
+.md-service-category-choice{display:flex;align-items:center;gap:9px;min-width:0;padding:11px 12px;border:1px solid #e1e6f1;border-radius:10px;background:#f8faff;font-size:12px;line-height:1.45;color:#313a51;cursor:pointer;transition:border-color .2s,background .2s}
+.md-service-category-choice:has(input:checked){border-color:#4563f5;background:#eff2ff;color:#263cac;font-weight:750}
+.md-service-category-choice input{flex:0 0 auto;width:16px;height:16px;accent-color:#4563f5}
+.md-service-category-field>small{color:#788196;font-size:11px}
+.md-portfolio-manage-link{display:flex;justify-content:flex-end;margin:-3px 0 15px}
+.md-portfolio-manage-link .admin-button{font-size:12px}
+@media(max-width:670px){.md-service-category-choices{grid-template-columns:1fr}.md-portfolio-manage-link{justify-content:flex-start}.collection-toolbar .toolbar-left{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){.md-service-category-choice{transition:none}}

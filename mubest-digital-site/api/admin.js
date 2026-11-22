@@ -21,12 +21,20 @@ const array = v => Array.isArray(v) ? v : String(v || "").split(/\r?\n|,/).map(x
 const cleanDetails = src => {
   const input = src && typeof src === "object" && !Array.isArray(src) ? src : {};
   const result = {};
-  for (const key of ["role","project_type","year","duration","services_used","skills_used","deliverables","challenge","goals","approach","solution","outcomes","client_feedback"]) {
+  for (const key of ["role","project_type","year","duration","services_used","skills_used","deliverables","service_categories","challenge","goals","approach","solution","outcomes","client_feedback"]) {
     const v = input[key];
-    if (["services_used","skills_used","deliverables"].includes(key)) result[key] = array(v).slice(0,24).map(x => text(x,150));
+    if (key === "service_categories") result[key]=normalizeServiceCategories(v).slice(0,12);
+    else if (["services_used","skills_used","deliverables"].includes(key)) result[key] = array(v).slice(0,24).map(x => text(x,150));
     else result[key] = text(v, key === "year" ? 20 : 7000);
   }
   return result;
+};
+const normalizeServiceCategories = value => {
+  const source = Array.isArray(value) ? value : String(value ?? "").split(/\r?\n/);
+  const names = source.map(name => text(name,60)).filter(Boolean);
+  if (names.length > 25) throw new Error("Maximum 25 portfolio categories.");
+  const seen = new Set();
+  return names.filter(name => { const key=name.toLocaleLowerCase(); if(seen.has(key))return false; seen.add(key); return true; });
 };
 const PAGE_NAMES = ["home","about","services","portfolio","contact"];
 const SECTION_KINDS = new Set(["builtin","text","image_text","reviews","faq","stats","cta","gallery"]);
@@ -228,7 +236,7 @@ async function saveSettings(data, admin) {
     "show_home_cta","header_cta_label","header_cta_url","nav_home_label",
     "nav_about_label","nav_services_label","nav_portfolio_label","nav_contact_label",
     "announcement_enabled","announcement_text","announcement_link_label","announcement_url",
-    "footer_tagline","footer_note","footer_cta_label","layout_sections",
+    "footer_tagline","footer_note","footer_cta_label","layout_sections","portfolio_service_categories",
     "portfolio_columns_desktop","portfolio_home_columns","portfolio_columns_tablet","portfolio_columns_mobile",
     "portfolio_gap","portfolio_hover_animation","portfolio_scroll_animation","portfolio_motion_speed"
   ]);
@@ -236,7 +244,7 @@ async function saveSettings(data, admin) {
     if (!allowed.has(key)) continue;
     const [old] = await query("SELECT value FROM site_settings WHERE key=$1",[key]);
     if (old) await revision(admin.user_id,"settings",key,{key,value:old.value});
-    const safeValue = key === "layout_sections" ? sanitizeLayouts(value) : value;
+    const safeValue = key === "layout_sections" ? sanitizeLayouts(value) : key === "portfolio_service_categories" ? normalizeServiceCategories(value) : value;
     await query(
       "INSERT INTO site_settings (key,value) VALUES ($1,$2::jsonb) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",
       [key,JSON.stringify(safeValue)]
