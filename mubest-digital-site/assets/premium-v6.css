@@ -280,3 +280,16 @@ html{scroll-padding-top:110px}
 .v6-request-call>span:last-child{color:#4563f5;font-size:1.2rem}
 body[data-page="contact"] .contact-points{gap:12px}
 @media(prefers-reduced-motion:reduce){.v6-skip-link,.v6-request-call{transition:none!important}}
+
+/* Review live project selections before visitors submit. */
+.v6-brief-review{
+  margin:4px 0 23px;padding:18px 20px;
+  border:1px solid #dbe4f5;border-radius:14px;
+  background:linear-gradient(120deg,#f3f6fe,#fbfcff);
+}
+.v6-review-heading{display:flex;justify-content:space-between;gap:13px;align-items:center;margin:0 0 12px}
+.v6-review-heading span{font-size:.66rem;font-weight:850;letter-spacing:.12em;color:#4563f5}
+.v6-review-heading button{border:0;background:transparent;color:#3150c2;font-weight:800;font-size:.7rem;cursor:pointer}
+.v6-brief-review strong{display:block;color:#273950;font:750 .93rem/1.55 'Manrope',sans-serif;overflow-wrap:anywhere}
+.v6-brief-review p{font-size:.75rem;line-height:1.65;color:#71809a;margin:7px 0 0}
+@media(max-width:500px){.v6-brief-review{padding:14px}.v6-review-heading{align-items:flex-start}}
