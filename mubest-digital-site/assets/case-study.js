@@ -50,6 +50,7 @@
     const settings=data.settings||{};
     if(url(settings.logo_url))document.querySelectorAll('.brand-logo').forEach(img=>img.src=url(settings.logo_url));
     if(url(settings.favicon_url))$('link[rel="icon"]').href=url(settings.favicon_url);
+    window.dispatchEvent(new CustomEvent('mubest:case-ready',{detail:{data,project}}));
   }
   function showError(message){$('#caseLoading').innerHTML=`<p>${esc(message)}</p><a class="button button-light" href="/portfolio/">Back to portfolio ↗</a>`;}
   const menuToggle=$('[data-menu-toggle]');const nav=$('[data-site-nav]');
