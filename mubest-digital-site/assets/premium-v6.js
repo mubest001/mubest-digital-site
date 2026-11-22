@@ -118,8 +118,16 @@
       if(event.key==='ArrowLeft'&&!['INPUT','TEXTAREA'].includes(event.target.tagName)){event.preventDefault();showProject(activeIndex-1);}
     });
   }
+  function contactCallLink(){
+    if(document.body.dataset.page!=='contact')return;
+    const points=$('.contact-points');if(!points||$('#v6CallLink'))return;
+    const a=document.createElement('a');a.className='v6-request-call';a.id='v6CallLink';
+    a.href='/start-project/?call=1';
+    a.innerHTML='<span aria-hidden="true">◷</span><span><strong>Prefer a discovery call?</strong><small>Share your preferred time and I’ll reply to arrange it.</small></span><span aria-hidden="true">↗</span>';
+    points.append(a);
+  }
   async function mount(){
-    a11y();progress();
+    a11y();progress();contactCallLink();
     const data=await (window.MubestPublicContentPromise||Promise.resolve(null)).catch(()=>null);
     if(document.body.dataset.page==='portfolio'&&data){
       // CMS fills the project grid asynchronously; defer to the next paint before reading project cards.
