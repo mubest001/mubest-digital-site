@@ -30,7 +30,7 @@ const cleanDetails = src => {
   return result;
 };
 const normalizeServiceCategories = value => {
-  const source = Array.isArray(value) ? value : String(value ?? "").split(/\\r?\\n/);
+  const source = Array.isArray(value) ? value : String(value ?? "").split(/\r?\n/);
   const names = source.map(name => text(name,60)).filter(Boolean);
   if (names.length > 25) throw new Error("Maximum 25 portfolio categories.");
   const seen = new Set();
