@@ -21,10 +21,14 @@ const array = v => Array.isArray(v) ? v : String(v || "").split(/\r?\n|,/).map(x
 const cleanDetails = src => {
   const input = src && typeof src === "object" && !Array.isArray(src) ? src : {};
   const result = {};
-  for (const key of ["role","project_type","year","duration","services_used","skills_used","deliverables","service_categories","challenge","goals","approach","solution","outcomes","client_feedback"]) {
+  for (const key of ["role","project_type","year","duration","services_used","skills_used","deliverables","service_categories","challenge","goals","approach","solution","outcomes","client_feedback","before_image","after_image","walkthrough_video","project_highlight"]) {
     const v = input[key];
     if (key === "service_categories") result[key]=normalizeServiceCategories(v).slice(0,12);
     else if (["services_used","skills_used","deliverables"].includes(key)) result[key] = array(v).slice(0,24).map(x => text(x,150));
+    else if (["before_image","after_image","walkthrough_video"].includes(key)) {
+      const candidate=text(v,2000);
+      result[key]=(!candidate||/^https:\/\//i.test(candidate)||/^\/(?!\/)/.test(candidate))?candidate:"";
+    }
     else result[key] = text(v, key === "year" ? 20 : 7000);
   }
   return result;
