@@ -205,18 +205,21 @@
     }[resource];
     const list=Array.isArray(items)?items:[];
     const filters=['all','published','draft','archived'];
+    const categories=resource==='portfolio'&&Array.isArray(state.settings.portfolio_service_categories)?state.settings.portfolio_service_categories:[];
     panel.innerHTML=heading(config[0],config[1],`<button class="admin-button primary" id="addRecord">${icon('plus')} ${config[2]}</button>`)+
-      `<div class="collection-toolbar"><div class="toolbar-left"><div class="search-field">${icon('search')}<input id="collectionSearch" type="search" placeholder="Search ${resource}..." aria-label="Search content"></div><select class="filter-select" id="collectionStatus" aria-label="Filter by status">${filters.map(f=>`<option value="${f}">${f==='all'?'All statuses':displayName(f)}</option>`).join('')}</select></div><span id="collectionCount" class="toolbar-count">${list.length} items</span></div>`+
+      (resource==='portfolio'?`<div class="md-portfolio-manage-link"><button type="button" class="admin-button ghost" id="managePortfolioCategories">${icon('grid')} Manage service categories</button></div>`:'')+
+      `<div class="collection-toolbar"><div class="toolbar-left"><div class="search-field">${icon('search')}<input id="collectionSearch" type="search" placeholder="Search ${resource}..." aria-label="Search content"></div><select class="filter-select" id="collectionStatus" aria-label="Filter by status">${filters.map(f=>`<option value="${f}">${f==='all'?'All statuses':displayName(f)}</option>`).join('')}</select>${resource==='portfolio'?'<select class="filter-select" id="collectionCategory" aria-label="Filter projects by service category"><option value="">All service categories</option>'+categories.map(name=>`<option value="${esc(name)}">${esc(name)}</option>`).join('')+'</select>':''}</div><span id="collectionCount" class="toolbar-count">${list.length} items</span></div>`+
       `<div id="collectionResults" class="panel-card" style="padding:8px 18px 17px"></div>`;
     $('#addRecord',panel).addEventListener('click',()=>openEditor(resource,null));
-    const input=$('#collectionSearch',panel), select=$('#collectionStatus',panel);
+    $('#managePortfolioCategories',panel)?.addEventListener('click',()=>loadView('portfoliocategories'));
+    const input=$('#collectionSearch',panel), select=$('#collectionStatus',panel), categorySelect=$('#collectionCategory',panel);
     function refresh(){
       const term=input.value.trim().toLowerCase(),filter=select.value;
-      const filtered=list.filter(x=>(filter==='all'||x.status===filter)&&[x.title,x.name,x.question,x.category,x.summary,x.excerpt,x.company,x.tag,x.slug].join(' ').toLowerCase().includes(term));
+      const filtered=list.filter(x=>(filter==='all'||x.status===filter)&&(!categorySelect||!categorySelect.value||(x.details?.service_categories||[]).includes(categorySelect.value))&&[x.title,x.name,x.question,x.category,x.summary,x.excerpt,x.company,x.tag,x.slug,...(x.details?.service_categories||[])].join(' ').toLowerCase().includes(term));
       $('#collectionCount',panel).textContent=`${filtered.length} of ${list.length} items`;
       $('#collectionResults',panel).innerHTML=filtered.length?`<div class="table-wrap"><table class="admin-table"><thead><tr><th>Content</th><th>${resource==='portfolio'?'Description':resource==='services'?'Deliverables':'Details'}</th><th>Status</th><th>Order</th><th>Actions</th></tr></thead><tbody>${filtered.map(item=>{
         const title=item.title||item.name||item.question;
-        const sub=item.category||item.company||item.slug||item.role||'';
+        const sub=resource==='portfolio'?[...(item.details?.service_categories||[]),item.category].filter(Boolean).join(' · '):(item.category||item.company||item.slug||item.role||'');
         const detail=item.excerpt||item.summary||item.quote||item.answer||'';
         const thumb=resource==='portfolio'?`<span class="project-row-thumb">${safeUrl(item.cover_image)?`<img src="${esc(safeUrl(item.cover_image))}" alt="" loading="lazy">`:esc(String(title||'M')[0])}</span>`:'';
         return `<tr><td><div class="content-identity">${thumb}<span><span class="table-title">${esc(short(title))}</span><span class="table-sub">${esc(short(sub))}</span></span></div></td><td><span class="table-sub">${esc(String(detail).slice(0,130))}</span></td><td>${statusPill(item.status)}</td><td>${esc(item.sort_order??'—')}</td><td><div class="row-actions">${resource==='portfolio'?`<a class="text-button" href="/portfolio/project/?slug=${encodeURIComponent(item.slug||'')}" target="_blank" rel="noopener noreferrer">View case study ↗</a>`:''}<button class="text-button" data-edit="${item.id}">${icon('edit')} Edit</button><button class="text-button delete" data-delete="${item.id}">Delete</button></div></td></tr>`;
@@ -224,7 +227,7 @@
       $$('[data-edit]',panel).forEach(b=>b.addEventListener('click',()=>openEditor(resource,list.find(x=>String(x.id)===b.dataset.edit))));
       $$('[data-delete]',panel).forEach(b=>b.addEventListener('click',()=>deleteItem(resource,b.dataset.delete)));
     }
-    input.addEventListener('input',refresh);select.addEventListener('change',refresh);refresh();
+    input.addEventListener('input',refresh);select.addEventListener('change',refresh);categorySelect?.addEventListener('change',refresh);refresh();
   }
 
   function fieldHtml(field,value){
