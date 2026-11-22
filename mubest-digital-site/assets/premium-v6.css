@@ -255,3 +255,28 @@ html{scroll-padding-top:110px}
   }
   .v6-back-top.is-visible{transform:none}
 }
+
+/* Keyboard-first access and consultation call-to-action */
+.v6-skip-link{
+  position:fixed;left:14px;top:9px;z-index:6000;
+  padding:10px 16px;color:#17191f;background:#b9e769;border-radius:9px;
+  font-size:.85rem;font-weight:800;box-shadow:0 5px 16px #0004;
+  transform:translateY(-160%);transition:transform .15s ease;
+}
+.v6-skip-link:focus{transform:translateY(0)}
+.v6-request-call{
+  display:flex;align-items:center;gap:13px;margin-top:10px;padding:17px 18px;
+  border:1px solid #ccd8fa;border-radius:14px;background:linear-gradient(120deg,#f2f5ff,#fff);
+  color:#24395f;transition:border-color .2s,box-shadow .2s;
+}
+.v6-request-call:hover,.v6-request-call:focus-visible{border-color:#4563f5;box-shadow:0 10px 26px #17264918}
+.v6-request-call>span:first-child{
+  display:grid;place-items:center;width:41px;height:41px;flex:0 0 41px;
+  border-radius:12px;color:#4563f5;background:#e6ecff;font-size:1.5rem;
+}
+.v6-request-call>span:nth-child(2){display:grid;gap:2px;flex:1;min-width:0}
+.v6-request-call strong{font-size:.84rem;font-weight:800}
+.v6-request-call small{font-size:.73rem;color:#677793;line-height:1.5}
+.v6-request-call>span:last-child{color:#4563f5;font-size:1.2rem}
+body[data-page="contact"] .contact-points{gap:12px}
+@media(prefers-reduced-motion:reduce){.v6-skip-link,.v6-request-call{transition:none!important}}
