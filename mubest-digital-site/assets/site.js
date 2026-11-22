@@ -46,4 +46,4 @@ cmsScript.addEventListener('load',()=>{
   const brandTheme=document.createElement('link');brandTheme.rel='stylesheet';brandTheme.href='/assets/brand-two-color.css';brandTheme.dataset.brandTheme='two-colour';document.head.appendChild(brandTheme);
 });
 document.body.appendChild(cmsScript);
-if(!editorPreview){const runtime=document.createElement('script');runtime.src='/assets/studio4-runtime.js';runtime.defer=true;document.body.appendChild(runtime);}
+if(!editorPreview && ['home','about','services','portfolio','contact'].includes(document.body.dataset.page)){const runtime=document.createElement('script');runtime.src='/assets/studio4-runtime.js';runtime.defer=true;document.body.appendChild(runtime);}
