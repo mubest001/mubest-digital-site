@@ -11,7 +11,7 @@ const str = (v, max = 2000) => String(v ?? "").trim().slice(0, max);
 function selector(value, optional = false) {
   const s = str(value, 900);
   if (!s && optional) return "";
-  if (!s || /[<>;{}]|javascript:|url\s*\(/i.test(s)) throw new Error("Invalid element selector.");
+  if (!s || /[<;{}]|javascript:|url\s*\(/i.test(s)) throw new Error("Invalid element selector.");
   return s;
 }
 function safeUrl(value, allowContact = false) {
