@@ -228,7 +228,9 @@ async function saveSettings(data, admin) {
     "show_home_cta","header_cta_label","header_cta_url","nav_home_label",
     "nav_about_label","nav_services_label","nav_portfolio_label","nav_contact_label",
     "announcement_enabled","announcement_text","announcement_link_label","announcement_url",
-    "footer_tagline","footer_note","footer_cta_label","layout_sections"
+    "footer_tagline","footer_note","footer_cta_label","layout_sections",
+    "portfolio_columns_desktop","portfolio_home_columns","portfolio_columns_tablet","portfolio_columns_mobile",
+    "portfolio_gap","portfolio_hover_animation","portfolio_scroll_animation","portfolio_motion_speed"
   ]);
   for (const [key,value] of Object.entries(data || {})) {
     if (!allowed.has(key)) continue;

@@ -168,6 +168,7 @@
 
   async function init() {
     const css=document.createElement("link");css.rel="stylesheet";css.href="/assets/cms-public.css";document.head.appendChild(css);
+    const motionCss=document.createElement("link");motionCss.rel="stylesheet";motionCss.href="/assets/portfolio-motion.css?v=3";document.head.appendChild(motionCss);
     const response=await fetch("/api/public-content",{cache:"no-store"});
     if(!response.ok) return;
     const data=await response.json();
@@ -198,6 +199,8 @@
 
     renderPortfolio(data.portfolio,document.querySelector(".work-grid"));
     renderPortfolio(data.portfolio,document.querySelector(".portfolio-grid"));
+    try { const motion = await import("/assets/portfolio-motion.js?v=3"); motion.applyPortfolioMotion(settings); }
+    catch(error) { console.warn("Portfolio motion could not load:",error); }
 
     const aboutImage=settings.about_image_url||page.about_image_url||"";
     if(aboutImage) {

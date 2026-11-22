@@ -11,8 +11,8 @@
   const safeUrl=value=>{const v=String(value||'').trim();return /^https?:\/\//i.test(v)||(/^\/(?!\/)/.test(v))?v:'';};
   const toast=(message,error=false)=>{const el=$('#toast');if(!el)return;el.textContent=message;el.className='toast show'+(error?' error':'');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.className='toast',4000);};
   const state={view:'overview',data:{},page:'home',pageRows:[],filter:'all',search:'',media:[],editorResource:null,editorItem:null,mediaTarget:null,settings:{}};
-  const titles={overview:'Overview',leads:'Enquiries',pages:'Pages',portfolio:'Portfolio',services:'Services',testimonials:'Testimonials',faqs:'FAQs',media:'Media library',branding:'Brand identity',homepage:'Homepage & hero',navigation:'Header & footer',seo:'SEO & sharing',contactsettings:'Contact & social',activity:'Activity & revisions',layout:'Visual layout builder'};
-  const settingsViews=['branding','homepage','navigation','seo','contactsettings','layout'];
+  const titles={overview:'Overview',leads:'Enquiries',pages:'Pages',portfolio:'Portfolio',services:'Services',testimonials:'Testimonials',faqs:'FAQs',media:'Media library',branding:'Brand identity',homepage:'Homepage & hero',navigation:'Header & footer',seo:'SEO & sharing',contactsettings:'Contact & social',activity:'Activity & revisions',layout:'Visual layout builder',portfoliodesign:'Portfolio appearance'};
+  const settingsViews=['branding','homepage','navigation','seo','contactsettings','layout','portfoliodesign'];
   const pageUrl={home:'/',about:'/about/',services:'/services/',portfolio:'/portfolio/',contact:'/contact/'};
 
   const pageGroups={
@@ -48,6 +48,22 @@
 
   // These keys are persisted to Neon site_settings, then read by public-content.
   const settingGroups={
+    portfoliodesign:{intro:'Control your portfolio layout and choose a modern motion style. Preview each hover effect before publishing.',groups:[
+      {title:'Portfolio grid layout',description:'Choose the number of projects in each row. Desktop defaults to three, tablet to two, and mobile to one.',fields:[
+        ['portfolio_columns_desktop','Projects per row · desktop','select',['1','2','3','4','5']],
+        ['portfolio_home_columns','Homepage featured projects per row','select',['1','2','3','4']],
+        ['portfolio_columns_tablet','Projects per row · tablet','select',['1','2','3']],
+        ['portfolio_columns_mobile','Projects per row · mobile','select',['1','2']],
+        ['portfolio_gap','Space between cards (px)','select',['12','18','24','30']]
+      ]},
+      {title:'Hover animation library',description:'Move your cursor over the preview cards to try a motion style. Works on keyboard focus too.',fields:[
+        ['portfolio_hover_animation','Hover style','select',['Lift','Zoom','Tilt','Glow','Sheen','Reveal','Spotlight','Parallax','Border','Float','None']],
+        ['portfolio_motion_speed','Animation speed','select',['Fast','Balanced','Slow']]
+      ]},
+      {title:'Scroll entrance effect',description:'A subtle entrance animation when projects appear. Reduced-motion visitors see a static layout.',fields:[
+        ['portfolio_scroll_animation','Entrance style','select',['Fade up','Scale in','Stagger','None']]
+      ]}
+    ]},
     branding:{intro:'Your identity, consistent across the website.',groups:[
       {title:'Your brand',description:'Your official logo and personal photography.',fields:[['site_name','Business name'],['logo_url','Full horizontal logo','image'],['favicon_url','Icon-only favicon','image'],['about_image_url','About / profile photograph','image']]},
       {title:'Brand colour system',description:'Update the colour palette while keeping the site design.',fields:[['color_ink','Midnight / dark colour','color'],['color_blue','Primary brand colour','color'],['color_lime','Accent colour','color'],['color_paper','Background colour','color']]},
@@ -377,6 +393,7 @@
   }
 
   function renderSettings(panel,settings,view){
+    settings={portfolio_columns_desktop:'3',portfolio_home_columns:'3',portfolio_columns_tablet:'2',portfolio_columns_mobile:'1',portfolio_gap:'18',portfolio_hover_animation:'Lift',portfolio_scroll_animation:'Fade up',portfolio_motion_speed:'Balanced',...settings};
     const config=settingGroups[view];
     panel.innerHTML=heading(titles[view],config.intro,`<a class="admin-button ghost" href="/" target="_blank" rel="noopener noreferrer">${icon('eye')} Open website</a>`)+
       `<div class="settings-intro"><strong>You're in control of the details.</strong><p>Changes are saved to the existing Neon database. Each card saves independently, so you can update only what you need.</p></div>`+
@@ -393,7 +410,24 @@
           return `<label>${esc(label)}<input name="${esc(key)}" type="${type==='email'?'email':'text'}" value="${esc(raw)}"></label>`;
         }).join('')+
         `<div class="form-footer"><small>Only fields in this card are saved.</small><button type="submit" class="admin-button primary">${icon('check')} Save ${esc(g.title.toLowerCase())}</button></div></form></div>`).join('');
-    $$('[data-settings-group]',panel).forEach(form=>{
+    if(view==='portfoliodesign'){
+      const first=panel.querySelector('.settings-section');
+      first?.insertAdjacentHTML('beforebegin',
+        '<section class="md-motion-preview"><div class="md-preview-head"><div><span class="md-preview-eyebrow">INTERACTIVE PREVIEW</span><h3>See the motion before you publish.</h3><p>Hover or focus a card; changing the selector updates this preview instantly.</p></div><a href="/portfolio/" target="_blank" rel="noopener noreferrer">View live portfolio ↗</a></div><div class="md-preview-grid" id="mdMotionPreview">'+
+        ['Shopify Storefront','Email Design','Product Customizer','Brand Experience','Digital Campaign'].map((name,i)=>'<div class="md-preview-card" tabindex="0"><div class="md-preview-art md-art-'+(i+1)+'"><span>0'+(i+1)+'</span></div><strong>'+name+'</strong><small>View project ↗</small></div>').join('')+
+        '</div></section>');
+      const preview=panel.querySelector('#mdMotionPreview');
+      const sync=()=>{
+        if(!preview)return;
+        preview.dataset.hover=String(panel.querySelector('[name="portfolio_hover_animation"]')?.value||'Lift').toLowerCase();
+        preview.style.setProperty('--preview-cols',String(Math.max(1,Math.min(5,Number(panel.querySelector('[name="portfolio_columns_desktop"]')?.value)||3))));
+        const speed=String(panel.querySelector('[name="portfolio_motion_speed"]')?.value||'Balanced');
+        preview.style.setProperty('--preview-time',speed==='Fast'?'220ms':speed==='Slow'?'700ms':'420ms');
+      };
+      panel.querySelectorAll('select').forEach(el=>el.addEventListener('change',sync));
+      sync();
+    }
+    $('[data-settings-group]',panel).forEach(form=>{
       $$('[data-pick-image]',form).forEach(b=>b.addEventListener('click',()=>openMediaPicker(b.dataset.pickImage,form)));
       form.addEventListener('submit',async e=>{
         e.preventDefault();const data=Object.fromEntries(new FormData(form).entries());
