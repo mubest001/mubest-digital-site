@@ -170,9 +170,8 @@
     const css=document.createElement("link");css.rel="stylesheet";css.href="/assets/cms-public.css";document.head.appendChild(css);
     const motionCss=document.createElement("link");motionCss.rel="stylesheet";motionCss.href="/assets/portfolio-motion.css?v=3";document.head.appendChild(motionCss);
     const categoriesCss=document.createElement("link");categoriesCss.rel="stylesheet";categoriesCss.href="/assets/portfolio-categories.css?v=1";document.head.appendChild(categoriesCss);
-    const response=await fetch("/api/public-content",{cache:"no-store"});
-    if(!response.ok) return;
-    const data=await response.json();
+    const data=await (window.MubestPublicContentPromise ||= fetch("/api/public-content",{cache:"no-store"}).then(async response=>response.ok?response.json():null));
+    if(!data) return;
     const settings=data.settings||{};
     const pageKey=document.body.dataset.page||"home";
     const page=(data.pages||{})[pageKey]||{};
