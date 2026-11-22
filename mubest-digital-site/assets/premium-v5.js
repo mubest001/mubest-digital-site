@@ -122,8 +122,8 @@
   async function run(){
     let data={services:[],portfolio:[],testimonials:[]};
     try{
-      const response=await fetch('/api/public-content',{cache:'no-store'});
-      if(response.ok)data=await response.json();
+      const loaded=await (window.MubestPublicContentPromise ||= fetch('/api/public-content',{cache:'no-store'}).then(async response=>response.ok?response.json():null));
+      if(loaded)data=loaded;
     }catch(e){console.warn('V5 service search unavailable:',e);}
     const services=Array.isArray(data.services)?data.services:[];
     mountMega(services);
