@@ -55,7 +55,7 @@ export function initPortfolioCategories(projects, settings={}) {
       button.setAttribute('aria-expanded',String(open));
     });
     document.addEventListener('click',event=>{if(!wrapper.contains(event.target))close();});
-    document.addEventListener('keydown',event=>{if(event.key==='Escape'){close();button.focus();}});
+    document.addEventListener('keydown',event=>{if(event.key==='Escape' && wrapper.classList.contains('is-open')){close();button.blur();}});
     nav.addEventListener('click',event=>{
       const link=event.target.closest('.md-portfolio-submenu a');
       if(!link)return;
