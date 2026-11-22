@@ -427,7 +427,7 @@
       panel.querySelectorAll('select').forEach(el=>el.addEventListener('change',sync));
       sync();
     }
-    $('[data-settings-group]',panel).forEach(form=>{
+    $$('[data-settings-group]',panel).forEach(form=>{
       $$('[data-pick-image]',form).forEach(b=>b.addEventListener('click',()=>openMediaPicker(b.dataset.pickImage,form)));
       form.addEventListener('submit',async e=>{
         e.preventDefault();const data=Object.fromEntries(new FormData(form).entries());
