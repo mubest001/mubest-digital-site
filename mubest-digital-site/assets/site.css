@@ -400,3 +400,16 @@ img, video { max-width: 100%; }
     height: calc(100dvh - 115px);
   }
 }
+/* Keep the header navigation separated at in-between desktop widths. */
+@media(min-width:681px) and (max-width:1160px){
+  .site-header .header-inner{gap:12px;min-width:0}
+  .site-header .brand{min-width:0}
+  .site-header .brand-logo{width:clamp(150px,18vw,195px);max-width:100%}
+  .site-header .nav{gap:clamp(10px,1.4vw,20px);min-width:0}
+  .site-header .nav a{font-size:.79rem;white-space:nowrap}
+  .site-header .header-cta{display:none}
+}
+@media(min-width:681px) and (max-width:800px){
+  .site-header .nav{gap:10px}
+  .site-header .nav a{font-size:.74rem}
+}
