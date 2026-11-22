@@ -32,7 +32,7 @@ function cleanStyles(value) {
   return out;
 }
 const DEVICES = ["desktop", "tablet", "mobile"];
-const GEOMETRY_KEYS = new Set(["translate","width","height","maxWidth","zIndex"]);
+const GEOMETRY_KEYS = new Set(["translate","width","height","minHeight","maxWidth","zIndex"]);
 function cleanDeviceStyles(value) {
   const result = {};
   if (!value || typeof value !== "object" || Array.isArray(value)) return result;
