@@ -11,6 +11,26 @@
   let index=0,busy=false;
   const url=new URLSearchParams(location.search);
   const prefill=url.get('service')||'';
+  const callRequested=$('#v6CallRequested'),callFields=$('#v6CallFields');
+  const callDate=$('#v6CallDate'),callWindow=$('#v6CallWindow'),callTimezone=$('#v6CallTimezone');
+  if(callDate){
+    const now=new Date();
+    const today=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');
+    callDate.min=today;
+  }
+  if(callTimezone && !callTimezone.value){
+    try{callTimezone.value=Intl.DateTimeFormat().resolvedOptions().timeZone||'';}catch{}
+  }
+  function syncCallRequest(){
+    if(!callRequested||!callFields)return;
+    const active=callRequested.checked;
+    callFields.hidden=!active;
+    if(callWindow)callWindow.required=active;
+    if(callTimezone)callTimezone.required=active;
+  }
+  callRequested?.addEventListener('change',syncCallRequest);
+  if(callRequested && url.get('call')==='1')callRequested.checked=true;
+  syncCallRequest();
   const normalized=v=>String(v||'').trim().toLowerCase();
   if(prefill){
     const key=normalized(prefill);
@@ -23,6 +43,14 @@
     if(exact||fuzzy)(exact||fuzzy).checked=true;
   }
   const selected=()=>$$('input[name="service_choice"]:checked').map(input=>input.value);
+  function updateBriefReview(){
+    const names=selected();
+    const title=$('#v6SelectedServices'),scope=$('#v6SelectedScope');
+    if(!title||!scope)return;
+    title.textContent=names.length?names.join('  ·  '):'No services selected yet';
+    const details=[form.elements.project_type?.value,form.elements.timeline?.value,form.elements.budget?.value].filter(Boolean);
+    scope.textContent=details.length?details.join('  •  '):'You can review and change your scope before sending.';
+  }
   function error(message){
     feedback.hidden=!message;
     feedback.textContent=message||'';
@@ -45,6 +73,7 @@
     next.hidden=index===steps.length-1;
     submit.hidden=index!==steps.length-1;
     error('');
+    if(index===3)updateBriefReview();
     if(moveFocus)steps[index].querySelector('h2')?.setAttribute('tabindex','-1');
     if(moveFocus)steps[index].querySelector('h2')?.focus({preventScroll:true});
   }
@@ -62,6 +91,10 @@
     }
     const urlInput=step===1?$('#v5CurrentSite'):null;
     if(urlInput?.value&&!urlInput.checkValidity()){error('Enter a valid website URL beginning with https://');urlInput.focus();return false;}
+    if(step===3&&callRequested?.checked&&callDate?.value&&!callDate.checkValidity()){
+      error('Choose a valid preferred call date in the future, or leave the date blank for flexibility.');
+      callDate.focus();return false;
+    }
     if(step===3&&contactMethod.value==='WhatsApp'&&whatsappInput.value.trim().length<8){
       error('Add your WhatsApp number or choose Email as the preferred reply method.');
       whatsappInput.focus();return false;
@@ -70,6 +103,8 @@
   }
   next.addEventListener('click',()=>{if(validate(index))show(index+1);});
   previous.addEventListener('click',()=>show(index-1));
+  $('#v6EditServices')?.addEventListener('click',()=>show(0));
+  form.addEventListener('change',updateBriefReview);
   contactMethod.addEventListener('change',()=>{
     whatsappBox.hidden=contactMethod.value!=='WhatsApp';
     whatsappInput.required=contactMethod.value==='WhatsApp';
@@ -93,6 +128,13 @@
       'Current website: '+(get('current_site')||'Not provided'),
       'Preferred reply: '+get('preferred_method'),
       'WhatsApp (if requested): '+(get('whatsapp_number')||'Not provided'),
+      'Discovery call request: '+(callRequested?.checked?'Yes — please arrange a call':'No'),
+      ...(callRequested?.checked?[
+        'Preferred call date: '+(get('preferred_call_date')||'Flexible'),
+        'Preferred call time window: '+(get('preferred_call_window')||'Not specified'),
+        'Visitor timezone: '+(get('preferred_call_timezone')||'Not specified'),
+        'Call status: Request only; date and time are not booked or confirmed'
+      ]:[]),
       '',
       'GOALS AND REQUIREMENTS:',
       get('goals'),
