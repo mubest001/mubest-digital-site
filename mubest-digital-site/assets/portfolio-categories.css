@@ -47,3 +47,7 @@
   .md-portfolio-select-label{max-width:none}
 }
 @media(prefers-reduced-motion:reduce){.site-header .nav .md-portfolio-menu-toggle,.site-header .nav .md-portfolio-submenu,.md-portfolio-filter-pills button{transition:none!important;transform:none!important}}
+
+
+.md-card-service-tags{display:flex;flex-wrap:wrap;gap:5px;margin:7px 0 6px}
+.md-card-service-tags span{display:inline-flex;max-width:100%;padding:3px 7px;border-radius:30px;background:rgba(69,99,245,.09);color:var(--blue,#4563f5);font-size:.61rem;font-weight:750;letter-spacing:.01em;line-height:1.45}
