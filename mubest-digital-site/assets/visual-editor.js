@@ -341,6 +341,23 @@
     if(selected)renderProperties();
   }
 
+  function duplicateSelected(){
+    if(!selected){toast('Select an element in the preview first.',true);return;}
+    const source=selected.addedId?layout.added.find(x=>x.id===selected.addedId):null;
+    if(!source){toast('Duplication is available for elements you add in the builder.',true);return;}
+    const copy=clone(source);
+    copy.id='vb_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7);
+    copy.hidden=false;
+    layout.added.push(copy);
+    setDirty();snapshot();applyToFrame();
+    setTimeout(()=>sendCanvas('vb:select',{selector:'[data-vb-added-id="'+copy.id+'"]'}),130);
+    toast('Element duplicated. Drag the copy to its new position.');
+  }
+  $('#veDuplicate')?.addEventListener('click',duplicateSelected);
+  $('#veShowLayers')?.addEventListener('click',()=>{
+    $('#veTabAdvanced')?.click();
+    $('.ve-premium-layers',properties)?.scrollIntoView({block:'nearest',behavior:'smooth'});
+  });
   $('#vePage').addEventListener('change', e => loadPage(e.target.value));
   $('#veRefresh').addEventListener('click', () => { const src = frame.src; frame.src = 'about:blank'; setTimeout(() => { frame.src = src; }, 50); });
   $('#veSaveDraft').addEventListener('click', () => save('draft'));
@@ -412,6 +429,7 @@
     if(data.type==='vb:canvas-ready')toast('Direct canvas controls ready: drag, resize and align elements.');
     if(data.type==='vb:shortcut' && data.action==='undo')$('#veUndo').click();
     if(data.type==='vb:shortcut' && data.action==='redo')$('#veRedo').click();
+    if(data.type==='vb:shortcut' && data.action==='duplicate')duplicateSelected();
     if (data.type === 'vb:deleted') { deleteSelected(); }
   });
 
