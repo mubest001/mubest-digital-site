@@ -112,7 +112,7 @@
       document.querySelector('.v5-brief-section').hidden=true;
       document.querySelector('#v5BriefSuccess').hidden=false;
       form.reset();
-      window.scrollTo({top:document.querySelector('#v5BriefSuccess').getBoundingClientRect().top+window.scrollY-95,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
+      window.scrollTo({top:document.querySelector('#v5BriefSuccess').getBoundingClientRect().top+window.scrollY-95,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
     }catch(e){
       error(e.message||'Your brief could not be sent. Please try again.');
       submit.disabled=false;submit.textContent='Send my project brief ↗';
