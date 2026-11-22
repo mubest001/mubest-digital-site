@@ -86,3 +86,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .md-portfolio-manage-link .admin-button{font-size:12px}
 @media(max-width:670px){.md-service-category-choices{grid-template-columns:1fr}.md-portfolio-manage-link{justify-content:flex-start}.collection-toolbar .toolbar-left{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){.md-service-category-choice{transition:none}}
+
+/* Premium V5 — guided project briefs in enquiries */
+.v5-lead-badge{display:inline-flex;padding:4px 8px;margin:0 0 7px;border-radius:999px;background:#eef4de;color:#3d6520;font-size:10px;font-weight:850;letter-spacing:.02em}
+.v5-lead-brief{max-width:350px;min-width:195px;border:1px solid #dfe5ed;border-radius:10px;overflow:hidden;background:#f8faff}
+.v5-lead-brief summary{padding:10px 12px;cursor:pointer;font-size:11px;font-weight:750;color:#3554be}
+.v5-lead-brief summary:hover{background:#ecf2ff}
+.v5-lead-brief[open]{max-width:min(600px,65vw);width:350px;overflow:visible;box-shadow:0 9px 25px #17213915}
+.v5-lead-brief pre{font:500 11px/1.7 Inter,Arial,sans-serif;color:#45546b;background:#fff;border-top:1px solid #e5eaf3;padding:12px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;max-height:370px;overflow:auto}
+@media(max-width:700px){.v5-lead-brief,.v5-lead-brief[open]{max-width:230px;width:230px}}
