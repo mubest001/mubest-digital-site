@@ -43,6 +43,14 @@
     if(exact||fuzzy)(exact||fuzzy).checked=true;
   }
   const selected=()=>$$('input[name="service_choice"]:checked').map(input=>input.value);
+  function updateBriefReview(){
+    const names=selected();
+    const title=$('#v6SelectedServices'),scope=$('#v6SelectedScope');
+    if(!title||!scope)return;
+    title.textContent=names.length?names.join('  ·  '):'No services selected yet';
+    const details=[form.elements.project_type?.value,form.elements.timeline?.value,form.elements.budget?.value].filter(Boolean);
+    scope.textContent=details.length?details.join('  •  '):'You can review and change your scope before sending.';
+  }
   function error(message){
     feedback.hidden=!message;
     feedback.textContent=message||'';
@@ -65,6 +73,7 @@
     next.hidden=index===steps.length-1;
     submit.hidden=index!==steps.length-1;
     error('');
+    if(index===3)updateBriefReview();
     if(moveFocus)steps[index].querySelector('h2')?.setAttribute('tabindex','-1');
     if(moveFocus)steps[index].querySelector('h2')?.focus({preventScroll:true});
   }
@@ -90,6 +99,8 @@
   }
   next.addEventListener('click',()=>{if(validate(index))show(index+1);});
   previous.addEventListener('click',()=>show(index-1));
+  $('#v6EditServices')?.addEventListener('click',()=>show(0));
+  form.addEventListener('change',updateBriefReview);
   contactMethod.addEventListener('change',()=>{
     whatsappBox.hidden=contactMethod.value!=='WhatsApp';
     whatsappInput.required=contactMethod.value==='WhatsApp';
