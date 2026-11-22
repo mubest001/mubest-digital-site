@@ -11,6 +11,26 @@
   let index=0,busy=false;
   const url=new URLSearchParams(location.search);
   const prefill=url.get('service')||'';
+  const callRequested=$('#v6CallRequested'),callFields=$('#v6CallFields');
+  const callDate=$('#v6CallDate'),callWindow=$('#v6CallWindow'),callTimezone=$('#v6CallTimezone');
+  if(callDate){
+    const now=new Date();
+    const today=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');
+    callDate.min=today;
+  }
+  if(callTimezone && !callTimezone.value){
+    try{callTimezone.value=Intl.DateTimeFormat().resolvedOptions().timeZone||'';}catch{}
+  }
+  function syncCallRequest(){
+    if(!callRequested||!callFields)return;
+    const active=callRequested.checked;
+    callFields.hidden=!active;
+    if(callWindow)callWindow.required=active;
+    if(callTimezone)callTimezone.required=active;
+  }
+  callRequested?.addEventListener('change',syncCallRequest);
+  if(callRequested && url.get('call')==='1')callRequested.checked=true;
+  syncCallRequest();
   const normalized=v=>String(v||'').trim().toLowerCase();
   if(prefill){
     const key=normalized(prefill);
@@ -93,6 +113,13 @@
       'Current website: '+(get('current_site')||'Not provided'),
       'Preferred reply: '+get('preferred_method'),
       'WhatsApp (if requested): '+(get('whatsapp_number')||'Not provided'),
+      'Discovery call request: '+(callRequested?.checked?'Yes — please arrange a call':'No'),
+      ...(callRequested?.checked?[
+        'Preferred call date: '+(get('preferred_call_date')||'Flexible'),
+        'Preferred call time window: '+(get('preferred_call_window')||'Not specified'),
+        'Visitor timezone: '+(get('preferred_call_timezone')||'Not specified'),
+        'Call status: Request only; date and time are not booked or confirmed'
+      ]:[]),
       '',
       'GOALS AND REQUIREMENTS:',
       get('goals'),
