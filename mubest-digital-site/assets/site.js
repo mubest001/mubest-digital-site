@@ -38,6 +38,9 @@ if(heroVideo&&(reduceMotion||saveData)){heroVideo.pause();heroVideo.removeAttrib
 document.querySelectorAll('[data-current-year]').forEach(node=>node.textContent=new Date().getFullYear());
 const editorPreview=new URLSearchParams(location.search).has('mubest-editor');
 if(editorPreview){const bridge=document.createElement('script');bridge.src='/assets/visual-editor-bridge.js?v=2-direct';document.body.appendChild(bridge);}
+if(!editorPreview){
+  const premium=document.createElement('script');premium.src='/assets/premium-v5.js?v=1';premium.defer=true;document.body.appendChild(premium);
+}
 const cmsScript=document.createElement('script');cmsScript.src='/assets/cms-public.js?v=categories2';cmsScript.defer=true;
 cmsScript.addEventListener('load',()=>{
   const brandTheme=document.createElement('link');brandTheme.rel='stylesheet';brandTheme.href='/assets/brand-two-color.css';brandTheme.dataset.brandTheme='two-colour';document.head.appendChild(brandTheme);
