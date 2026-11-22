@@ -127,6 +127,11 @@
     }catch(e){console.warn('V5 service search unavailable:',e);}
     const services=Array.isArray(data.services)?data.services:[];
     mountMega(services);
+    if(document.body.dataset.page==='case-study'){
+      const link=document.createElement('link');link.rel='stylesheet';link.href='/assets/portfolio-categories.css?v=2';document.head.append(link);
+      try { const module=await import('/assets/portfolio-categories.js?v=2');module.initPortfolioCategories(data.portfolio||[],data.settings||{}); }
+      catch(error){console.warn('Portfolio navigation unavailable on case study:',error);}
+    }
     mountSearch(data);
     trustOnServices(data);
     serviceActions(data);
