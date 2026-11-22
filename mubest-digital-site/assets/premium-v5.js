@@ -109,7 +109,7 @@
     const contactForm=$('[data-contact-form]');
     if(contactForm&&!$('#v5BriefAlternative')){
       const item=document.createElement('a');item.id='v5BriefAlternative';item.href='/start-project/';item.className='v5-brief-alternative';item.innerHTML='<span><strong>Prefer a guided project brief?</strong><small>Answer a few structured questions so I can understand your project better.</small></span><span aria-hidden="true">↗</span>';
-      contactForm.parentElement.insertBefore(item,contactForm);
+      contactForm.prepend(item);
     }
     const last=$('.cta-panel .button');
     if(last&&location.pathname.startsWith('/services/'))last.href='/start-project/';
