@@ -1,0 +1,71 @@
+/* Mubest Digital Visual Builder — direct-manipulation premium controls */
+.ve-premium-toolbar{display:flex;align-items:center;gap:7px;flex:0 0 auto;min-height:49px;max-width:100%;padding:6px 11px;margin:0 0 9px;background:#fff;border:1px solid #e1e7f0;border-radius:12px;box-shadow:0 4px 15px #20304a08;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;white-space:nowrap}
+.ve-premium-mode{display:inline-flex;align-items:center;gap:7px;color:#28344a;font-size:10px;font-weight:850;padding:0 5px;flex:0 0 auto}
+.ve-premium-mode-dot{height:7px;width:7px;border-radius:50%;background:#80c832;box-shadow:0 0 0 3px #b9e76940}
+.ve-premium-divider{width:1px;min-width:1px;height:21px;background:#dde4ef;margin:0 4px}
+.ve-premium-toolbar button{padding:8px 10px;min-height:32px;color:#435167;border:1px solid transparent;border-radius:7px;background:transparent;font:750 10px/1.2 Inter,sans-serif;white-space:nowrap;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.ve-premium-toolbar button:hover{background:#eef2ff;color:#3451c2}
+.ve-premium-toolbar button[aria-pressed="true"]{background:#edf9de;border-color:#d8eac4;color:#346015}
+.ve-premium-toolbar button span{font-size:8px;letter-spacing:.04em}
+.ve-premium-zoom{display:flex;align-items:center;gap:7px;color:#667187;font-size:10px;font-weight:800}
+.ve-premium-zoom select{padding:7px 24px 7px 8px;background:#f8faff;color:#29354a;border:1px solid #dbe3f2;border-radius:8px;font-size:10px;font-weight:750}
+.ve-canvas-area .ve-frame-shell iframe{transform-origin:top left!important;will-change:transform}
+.ve-premium-note{font-size:10px;line-height:1.6;color:#708095;margin:0 0 14px}
+.ve-premium-action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:11px 0}
+.ve-premium-action-grid button{display:flex;align-items:center;justify-content:center;gap:5px;min-height:33px;padding:6px 8px;background:#f5f7ff;color:#344ab1;border:1px solid #dce4ff;border-radius:8px;font-size:10px;font-weight:750;cursor:pointer;transition:.15s}
+.ve-premium-action-grid button:hover{background:#e8edff;border-color:#a7b9f6}
+.ve-premium-shortcut{display:block;color:#788699;font-size:9px;line-height:1.55}
+.ve-premium-layers{display:grid;gap:6px;max-height:210px;overflow:auto}
+.ve-premium-layer{display:flex;align-items:center;gap:7px;min-width:0;padding:8px;border:1px solid #e5e9f2;border-radius:8px;background:#fff;text-align:left;cursor:pointer}
+.ve-premium-layer:hover{border-color:#8da5fb;background:#f7f9ff}
+.ve-premium-layer span{flex:0 0 auto;font-size:8px;color:#5371d3;background:#eaf0ff;border-radius:5px;padding:4px}
+.ve-premium-layer b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;font-weight:700;color:#324056}
+.ve-canvas-area .ve-frame-stage{overflow:auto;position:relative}
+.ve-canvas-area .ve-frame-shell{flex:0 0 auto;transition:width .22s ease;max-width:none}
+@media(max-width:1470px){
+  .ve-topbar{gap:13px;padding-inline:16px}
+  .ve-brand-group{min-width:300px;gap:15px}
+  .ve-brand img{width:154px}
+  .ve-page-control{min-width:195px}
+  .ve-workspace{grid-template-columns:64px 230px minmax(0,1fr) 290px}
+  .ve-top-actions{gap:6px}
+  .ve-button{padding-inline:12px}
+}
+@media(max-width:1180px){
+  .ve-topbar{gap:10px}
+  .ve-brand-group{min-width:220px;gap:9px}
+  .ve-brand img{width:126px}
+  .ve-brand-divider{height:23px}
+  .ve-app-name{min-width:0}
+  .ve-app-name strong{font-size:12px}
+  .ve-app-name span{font-size:9px}
+  .ve-workspace{grid-template-columns:58px 185px minmax(0,1fr) 250px}
+  .ve-page-control{min-width:140px}
+  .ve-save-state{display:none}
+  .ve-top-divider{display:none}
+}
+@media(max-width:930px){
+  .ve-topbar{height:auto;min-height:74px;flex-wrap:wrap;gap:8px;padding:12px}
+  .ve-brand-group{min-width:0;flex:1}
+  .ve-top-actions{flex:1 1 auto}
+  .ve-workspace{height:calc(100vh - 100px);grid-template-columns:56px 180px minmax(0,1fr)}
+  .ve-right-panel{grid-column:2/4;grid-row:2;display:block;max-height:280px;border-top:1px solid #e1e7ef}
+  .ve-icon-rail{grid-row:1/3}
+  .ve-left-panel{grid-column:2;grid-row:1}
+  .ve-canvas-area{grid-column:3;grid-row:1}
+}
+@media(max-width:720px){
+  .ve-topbar{align-items:center}
+  .ve-brand-group{flex:1 1 auto}
+  .ve-top-actions{justify-content:flex-end}
+  .ve-workspace{display:flex;flex-direction:column;height:auto}
+  .ve-icon-rail{display:none}
+  .ve-canvas-area{order:1;min-height:60vh;height:60vh}
+  .ve-right-panel{order:2;max-height:none}
+  .ve-left-panel{order:3;max-height:390px}
+  .ve-premium-toolbar{margin-bottom:5px}
+  .ve-premium-mode{font-size:9px}
+  .ve-canvas-toolbar{height:auto;min-height:52px;padding:8px}
+  .ve-canvas-title small{display:none}
+}
+@media(prefers-reduced-motion:reduce){.ve-premium-toolbar button,.ve-premium-action-grid button,.ve-canvas-area .ve-frame-shell{transition:none!important}}
