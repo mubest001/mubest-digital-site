@@ -41,9 +41,9 @@ if(editorPreview){const bridge=document.createElement('script');bridge.src='/ass
 if(!editorPreview){
   const premium=document.createElement('script');premium.src='/assets/premium-v5.js?v=1';premium.defer=true;document.body.appendChild(premium);
 }
-const cmsScript=document.createElement('script');cmsScript.src='/assets/cms-public.js?v=categories2';cmsScript.defer=true;
+const cmsScript=document.createElement('script');cmsScript.src='/assets/cms-public.js?v=premium-v5-1';cmsScript.defer=true;
 cmsScript.addEventListener('load',()=>{
   const brandTheme=document.createElement('link');brandTheme.rel='stylesheet';brandTheme.href='/assets/brand-two-color.css';brandTheme.dataset.brandTheme='two-colour';document.head.appendChild(brandTheme);
 });
 document.body.appendChild(cmsScript);
-if(!editorPreview && ['home','about','services','portfolio','contact'].includes(document.body.dataset.page)){const runtime=document.createElement('script');runtime.src='/assets/studio4-runtime.js';runtime.defer=true;document.body.appendChild(runtime);}
+if(!editorPreview && ['home','about','services','portfolio','contact'].includes(document.body.dataset.page)){const runtime=document.createElement('script');runtime.src='/assets/studio4-runtime.js?v=premium-v5-1';runtime.defer=true;document.body.appendChild(runtime);}
