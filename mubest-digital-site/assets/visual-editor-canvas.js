@@ -150,6 +150,7 @@
   window.addEventListener('resize',refresh);
   doc.addEventListener('click',refresh,true);
   function action(name){
+    if(name==='check-overlaps'&&!selected()){const first=api.root.querySelector('h1,h2,p,a,button,img,video');if(first)api.select(first);}
     const el=selected();if(!el)return;
     const section=boundsFor(el).getBoundingClientRect(),r=el.getBoundingClientRect(),old=parseTranslation(el.style.translate);
     let change={};
