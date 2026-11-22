@@ -44,6 +44,12 @@ if(!editorPreview){
 const cmsScript=document.createElement('script');cmsScript.src='/assets/cms-public.js?v=premium-v5-1';cmsScript.defer=true;
 cmsScript.addEventListener('load',()=>{
   const brandTheme=document.createElement('link');brandTheme.rel='stylesheet';brandTheme.href='/assets/brand-two-color.css';brandTheme.dataset.brandTheme='two-colour';document.head.appendChild(brandTheme);
+  if(!document.querySelector('[data-premium-v6-css]')){
+    const v6css=document.createElement('link');v6css.rel='stylesheet';v6css.href='/assets/premium-v6.css?v=1';v6css.dataset.premiumV6Css='true';document.head.appendChild(v6css);
+  }
+  if(!editorPreview && !document.querySelector('[data-premium-v6-js]')){
+    const v6=document.createElement('script');v6.src='/assets/premium-v6.js?v=1';v6.dataset.premiumV6Js='true';document.body.appendChild(v6);
+  }
 });
 document.body.appendChild(cmsScript);
 if(!editorPreview && ['home','about','services','portfolio','contact'].includes(document.body.dataset.page)){const runtime=document.createElement('script');runtime.src='/assets/studio4-runtime.js?v=premium-v5-1';runtime.defer=true;document.body.appendChild(runtime);}
