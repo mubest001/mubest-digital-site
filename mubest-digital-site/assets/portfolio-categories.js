@@ -72,6 +72,16 @@ export function initPortfolioCategories(projects, settings={}) {
   grid.id='portfolio-projects';
   const cards=Array.from(grid.querySelectorAll(':scope > .work-card'));
   if(!cards.length || !activeCategories.length)return;
+  cards.forEach((card,index)=>{
+    const services=assigned(items[index]||{}).filter(name=>configured.some(c=>c.toLowerCase()===name.toLowerCase()));
+    const info=card.querySelector('.work-info > div');
+    if(!info||!services.length||info.querySelector('.md-card-service-tags'))return;
+    const tags=document.createElement('div');
+    tags.className='md-card-service-tags';
+    tags.innerHTML=services.slice(0,2).map(name=>'<span>'+esc(name)+'</span>').join('')+(services.length>2?'<span>+'+(services.length-2)+'</span>':'');
+    const heading=info.querySelector('h3');
+    info.insertBefore(tags,heading||null);
+  });
   const toolbar=document.createElement('section');
   toolbar.className='md-portfolio-filters';
   toolbar.setAttribute('aria-label','Filter portfolio by service');
@@ -115,4 +125,7 @@ export function initPortfolioCategories(projects, settings={}) {
   select.addEventListener('change',()=>update(select.value,true));
   window.addEventListener('popstate',()=>update(readSelected()));
   update(readSelected());
+  if(window.location.hash==='#portfolio-projects'){
+    requestAnimationFrame(()=>grid.scrollIntoView({block:'start',behavior:'auto'}));
+  }
 }
