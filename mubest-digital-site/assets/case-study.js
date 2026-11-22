@@ -63,9 +63,7 @@
     const slug=new URLSearchParams(location.search).get('slug');
     if(!slug||slug.length>180){showError('This project could not be found.');return;}
     try{
-      const res=await fetch('/api/public-content',{cache:'no-store'});
-      if(!res.ok)throw new Error('Portfolio details are temporarily unavailable.');
-      const data=await res.json();
+      const data=await (window.MubestPublicContentPromise ||= fetch('/api/public-content',{cache:'no-store'}).then(async res=>{if(!res.ok)throw new Error('Portfolio details are temporarily unavailable.');return res.json();}));
       const project=(data.portfolio||[]).find(item=>item.slug===slug);
       if(!project){showError('This project is not published or cannot be found.');return;}
       render(data,project);
