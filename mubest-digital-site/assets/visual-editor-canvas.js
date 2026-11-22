@@ -29,6 +29,7 @@
   .vb-smart-guide[data-axis="y"]{height:1px;left:0;width:100vw}
   .vb-canvas-info{position:fixed;bottom:12px;left:12px;z-index:2147483645;background:#182234ea;color:#fff;border:1px solid #ffffff24;border-radius:8px;padding:7px 10px;font:600 11px Inter,Arial,sans-serif;max-width:min(320px,90vw);pointer-events:none}
   .vb-canvas-info[hidden]{display:none!important}
+  .vb-overlap-alert{outline:2px solid #ef7947!important;outline-offset:2px!important}
   `;
   doc.head.appendChild(css);
   const handles=['nw','n','ne','e','se','s','sw','w'].map(edge=>{
@@ -158,6 +159,30 @@
     else if(name==='top'){el.style.translate=px(old.x)+' '+px(old.y+section.top-r.top+12);change={translate:el.style.translate};}
     else if(name==='middle'){el.style.translate=px(old.x)+' '+px(old.y+section.top+section.height/2-r.top-r.height/2);change={translate:el.style.translate};}
     else if(name==='front'||name==='back'){const index=parseInt(getComputedStyle(el).zIndex,10)||0;const z=clamp(index+(name==='front'?1:-1),-20,80);el.style.zIndex=String(z);if(getComputedStyle(el).position==='static')el.style.position='relative';change={zIndex:String(z)};}
+    else if(name==='check-overlaps'){
+      const scope=api.root;
+      const candidates=[...scope.querySelectorAll('h1,h2,h3,h4,p,a.button,button,img,video,[data-vb-added-id]')]
+        .filter(node=>node.getClientRects().length && getComputedStyle(node).visibility!=='hidden' && getComputedStyle(node).display!=='none');
+      const rectangles=candidates.slice(0,140).map(node=>({node,rect:node.getBoundingClientRect()}));
+      const clashes=new Set();
+      for(let i=0;i<rectangles.length;i++)for(let j=i+1;j<rectangles.length;j++){
+        const a=rectangles[i],b=rectangles[j];
+        if(a.node.contains(b.node)||b.node.contains(a.node))continue;
+        if(a.node.closest('section')!==b.node.closest('section'))continue;
+        const width=Math.min(a.rect.right,b.rect.right)-Math.max(a.rect.left,b.rect.left);
+        const height=Math.min(a.rect.bottom,b.rect.bottom)-Math.max(a.rect.top,b.rect.top);
+        const overlap=width*height;
+        const smaller=Math.min(a.rect.width*a.rect.height,b.rect.width*b.rect.height);
+        if(width>3&&height>3&&smaller>100&&overlap/smaller>.23){clashes.add(a.node);clashes.add(b.node);}
+      }
+      const count=clashes.size;
+      clashes.forEach(node=>{node.classList.add('vb-overlap-alert');setTimeout(()=>node.classList.remove('vb-overlap-alert'),4000)});
+      info.textContent=count?count+' elements may overlap. Review the orange outlines.':'No significant overlaps detected among editable elements.';
+      info.hidden=false;
+      setTimeout(()=>{if(!drag)info.hidden=true},4400);
+      window.parent.postMessage({type:'vb:overlap-report',count},location.origin);
+      return;
+    }
     else if(name==='lock'){lock=!lock;refresh();window.parent.postMessage({type:'vb:canvas-status',locked:lock},location.origin);return;}
     else if(name==='select-parent'){if(el.parentElement&&api.root.contains(el.parentElement))api.select(el.parentElement);return;}
     else return;
@@ -166,6 +191,9 @@
   window.MubestPremiumCanvasAction=action;
   doc.addEventListener('keydown',e=>{
     if(e.target.isContentEditable||['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)||e.metaKey||e.altKey)return;
+    if(e.ctrlKey && e.key.toLowerCase()==='d'){
+      e.preventDefault();window.parent.postMessage({type:'vb:shortcut',action:'duplicate'},location.origin);return;
+    }
     if(e.ctrlKey && e.key.toLowerCase()==='z'){
       e.preventDefault();window.parent.postMessage({type:'vb:shortcut',action:e.shiftKey?'redo':'undo'},location.origin);return;
     }
