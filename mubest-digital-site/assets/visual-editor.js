@@ -18,6 +18,21 @@
   let dirty = false;
   let historyTimer = null;
   let currentDevice = 'desktop';
+  let snapEnabled=true;
+  let smartGuidesEnabled=true;
+  const geometryKeys=['translate','width','height','minHeight','maxWidth','zIndex'];
+  const parseXY=value=>{const m=String(value||'').match(/(-?\d+(?:\.\d+)?)px(?:\s+|,\s*)(-?\d+(?:\.\d+)?)px/);return m?{x:Number(m[1]),y:Number(m[2])}:{x:0,y:0};};
+  function sendCanvas(type,extra={}){if(frame.contentWindow)frame.contentWindow.postMessage({type,...extra},location.origin);}
+  function devicePatch(){
+    if(!selected)return null;
+    return selected.addedId?layout.added.find(x=>x.id===selected.addedId):getPatch(selected.selector);
+  }
+  function setDeviceGeometry(update){
+    const patch=devicePatch();if(!patch)return;
+    patch.deviceStyles=patch.deviceStyles||{};
+    patch.deviceStyles[currentDevice]={...(patch.deviceStyles[currentDevice]||{}),...update};
+    setDirty();scheduleSnapshot();applyToFrame();
+  }
 
   function toast(message, error = false) {
     const el = $('#veToast'); el.textContent = message; el.className = 've-toast show' + (error ? ' error' : '');
@@ -117,6 +132,10 @@
     const added = selected.addedId ? layout.added.find(x => x.id === selected.addedId) : null;
     const patch = selected.addedId ? (added || {}) : (layout.patches.find(x => x.selector === selected.selector) || {});
     const styles = patch.styles || {};
+    const deviceStyles=patch.deviceStyles?.[currentDevice]||{};
+    const xy=parseXY(deviceStyles.translate||'0px 0px');
+    const geo=key=>deviceStyles[key]!==undefined?String(deviceStyles[key]):'';
+    const isTextBox=/^(h[1-6]|p|a|button|blockquote|li|span)$/.test(String(selected.tag||''));
     const value = (key, fallback = '') => esc(patch[key] !== undefined ? patch[key] : fallback);
     const currentText = patch.text !== undefined ? patch.text : selected.text || '';
     const socialPlatforms=[['instagram','Instagram'],['linkedin','LinkedIn'],['facebook','Facebook'],['tiktok','TikTok'],['youtube','YouTube'],['x','X / Twitter'],['pinterest','Pinterest'],['whatsapp','WhatsApp']];
@@ -136,6 +155,13 @@
       const urls=added.links || {};
       fields.push(`<div class="ve-prop-group"><h3>Social profile URLs</h3><p style="font-size:10px;color:#7b8594;line-height:1.6;margin:0 0 14px">Paste each social profile link. The preview and live website show only the platform logos. Leave unused links blank.</p>${socialPlatforms.map(([id,label])=>`<label class="ve-prop-field"><span>${esc(label)}</span><input class="ve-social-input" data-social-platform="${id}" type="url" value="${esc(urls[id] || '')}" placeholder="https://..." autocomplete="off"></label>`).join('')}</div>`);
     }
+    fields.push('<div class="ve-prop-group"><h3>Position & size</h3>'+
+      '<p class="ve-premium-note">Drag the selected element directly in the preview. Pull any blue handle to resize. These settings apply to '+esc(currentDevice)+' only.</p>'+
+      '<div class="ve-prop-two"><label class="ve-prop-field"><span>X offset (px)</span><input id="veX" type="number" step="1" value="'+esc(xy.x)+'"></label><label class="ve-prop-field"><span>Y offset (px)</span><input id="veY" type="number" step="1" value="'+esc(xy.y)+'"></label></div>'+
+      '<div class="ve-prop-two"><label class="ve-prop-field"><span>Width (px)</span><input id="veGeometryWidth" type="number" min="40" value="'+esc(parseFloat(geo('width'))||'')+'" placeholder="Auto"></label><label class="ve-prop-field"><span>'+ (isTextBox?'Min height':'Height') +' (px)</span><input id="veGeometryHeight" type="number" min="20" value="'+esc(parseFloat(geo(isTextBox?'minHeight':'height'))||'')+'" placeholder="Auto"></label></div>'+
+      '<div class="ve-premium-action-grid"><button type="button" data-canvas-action="left">Align left</button><button type="button" data-canvas-action="center">Center</button><button type="button" data-canvas-action="right">Align right</button><button type="button" data-canvas-action="middle">Center vertically</button><button type="button" data-canvas-action="reset">Reset position</button><button type="button" data-canvas-action="select-parent">Select parent</button></div>'+
+      '<small class="ve-premium-shortcut">Arrow keys nudge 1px · Shift + Arrow nudges 10px · Use the toolbar for guides, layers and snap.</small></div>');
+    fields.push('<div class="ve-prop-group"><h3>Layers</h3><div class="ve-premium-layers">'+layout.added.map(item=>'<button type="button" data-select-layer="[data-vb-added-id=&quot;'+esc(item.id)+'&quot;]" class="ve-premium-layer"><span>'+esc((item.type||'element').toUpperCase())+'</span><b>'+esc((item.text||item.type||'New element').slice(0,45))+'</b></button>').join('')+'</div><div class="ve-premium-action-grid"><button type="button" data-canvas-action="front">Bring forward</button><button type="button" data-canvas-action="back">Send backward</button></div></div>');
     fields.push(`<div class="ve-prop-group"><h3>Appearance</h3><div class="ve-prop-two"><label class="ve-prop-field"><span>Text colour</span><input id="veColor" type="color" value="${/^#[0-9a-f]{6}$/i.test(styles.color || selected.styles?.color || '') ? (styles.color || selected.styles.color) : '#17191f'}"></label><label class="ve-prop-field"><span>Background</span><input id="veBackground" type="color" value="${/^#[0-9a-f]{6}$/i.test(styles.backgroundColor || selected.styles?.backgroundColor || '') ? (styles.backgroundColor || selected.styles.backgroundColor) : '#ffffff'}"></label></div><div class="ve-prop-two"><label class="ve-prop-field"><span>Font size</span><input id="veFontSize" value="${value('fontSize', styles.fontSize || selected.styles?.fontSize || '')}" placeholder="e.g. 24px"></label><label class="ve-prop-field"><span>Width</span><input id="veWidth" value="${value('width', styles.width || selected.styles?.width || '')}" placeholder="e.g. 100%"></label></div><label class="ve-prop-field"><span>Text alignment</span><select id="veAlign"><option value="">Keep current</option>${['left','center','right','justify'].map(x => `<option value="${x}" ${(styles.textAlign || selected.styles?.textAlign) === x ? 'selected' : ''}>${x[0].toUpperCase()+x.slice(1)}</option>`).join('')}</select></label><div class="ve-prop-two"><label class="ve-prop-field"><span>Padding</span><input id="vePadding" value="${value('padding', styles.padding || selected.styles?.padding || '')}" placeholder="e.g. 16px"></label><label class="ve-prop-field"><span>Margin</span><input id="veMargin" value="${value('margin', styles.margin || selected.styles?.margin || '')}" placeholder="e.g. 12px 0"></label></div><label class="ve-prop-field"><span>Corner radius</span><input id="veRadius" value="${value('borderRadius', styles.borderRadius || selected.styles?.borderRadius || '')}" placeholder="e.g. 12px"></label></div>`);
     fields.push(`<div class="ve-prop-group"><h3>Visibility & actions</h3><label class="ve-prop-toggle"><input id="veHidden" type="checkbox" ${patch.hidden === true ? 'checked' : ''}> Hide this element on the live page</label><div class="ve-prop-actions"><button id="veDelete" class="danger" type="button">Delete / hide element</button></div></div>`);
     fields.push(`<div class="ve-prop-summary"><b>Selected: ${esc(selected.tag || 'element')}</b><small>${esc(selected.selector || 'New block')}</small></div>`);
@@ -162,6 +188,13 @@
     $('#veAlt')?.addEventListener('input', e => updateSelected('alt', e.target.value));
     const styleBindings = [['veColor','color'],['veBackground','backgroundColor'],['veFontSize','fontSize'],['veWidth','width'],['veAlign','textAlign'],['vePadding','padding'],['veMargin','margin'],['veRadius','borderRadius']];
     styleBindings.forEach(([id,key]) => $(`#${id}`)?.addEventListener('input', e => updateSelected(key, e.target.value, true)));
+    const commitXY=()=>setDeviceGeometry({translate:String(Number($('#veX')?.value||0))+'px '+String(Number($('#veY')?.value||0))+'px'});
+    $('#veX')?.addEventListener('change',commitXY);
+    $('#veY')?.addEventListener('change',commitXY);
+    $('#veGeometryWidth')?.addEventListener('change',event=>setDeviceGeometry({width:event.target.value?Math.max(40,Number(event.target.value))+'px':'auto'}));
+    $('#veGeometryHeight')?.addEventListener('change',event=>setDeviceGeometry({[isTextBox?'minHeight':'height']:event.target.value?Math.max(20,Number(event.target.value))+'px':isTextBox?'0px':'auto'}));
+    $$('[data-canvas-action]',properties).forEach(button=>button.addEventListener('click',()=>sendCanvas('vb:canvas-action',{action:button.dataset.canvasAction})));
+    $$('[data-select-layer]',properties).forEach(button=>button.addEventListener('click',()=>sendCanvas('vb:select',{selector:button.dataset.selectLayer})));
     $('#veHidden')?.addEventListener('change', e => updateSelected('hidden', e.target.checked));
     $('#veDelete')?.addEventListener('click', deleteSelected);
   }
@@ -303,6 +336,9 @@
     shell.classList.toggle('mobile', device === 'mobile');
     $$('[data-device]').forEach(b => b.classList.toggle('active', b.dataset.device === device));
     $('#vePreviewLabel').textContent = device[0].toUpperCase() + device.slice(1);
+    sendCanvas('vb:set-device',{device});
+    setTimeout(()=>sendCanvas('vb:set-device',{device}),270);
+    if(selected)renderProperties();
   }
 
   $('#vePage').addEventListener('change', e => loadPage(e.target.value));
@@ -311,7 +347,11 @@
   $('#vePublish').addEventListener('click', () => { if (confirm(`Publish the visual changes to the ${page} page?`)) save('publish'); });
   $$('[data-add]').forEach(b => b.addEventListener('click', () => addElement(b.dataset.add)));
   $$('[data-device]').forEach(b => b.addEventListener('click', () => setDevice(b.dataset.device)));
-  frame.addEventListener('load', () => { setTimeout(applyToFrame, 220); setTimeout(applyToFrame, 850); });
+  frame.addEventListener('load', () => {
+    setTimeout(()=>sendCanvas('vb:set-device',{device:currentDevice}),120);
+    setTimeout(applyToFrame,260);
+    setTimeout(()=>{sendCanvas('vb:set-device',{device:currentDevice});applyToFrame();},850);
+  });
   $('#veUndo').addEventListener('click', () => {
     if (historyIndex <= 0) return;
     historyIndex--; layout = JSON.parse(history[historyIndex]); setDirty(); updateHistoryButtons(); applyToFrame(); renderProperties();
@@ -359,6 +399,19 @@
       layout.moves = layout.moves.filter(x => x.selector !== data.move.selector);
       layout.moves.push(data.move); setDirty(); snapshot();
     }
+    if (data.type === 'vb:geometry-commit' && data.styles) {
+      const patch=data.addedId?layout.added.find(x=>x.id===data.addedId):getPatch(data.selector);
+      if(patch){
+        const device=['desktop','tablet','mobile'].includes(data.device)?data.device:'desktop';
+        const valid=Object.fromEntries(Object.entries(data.styles).filter(([key,value])=>geometryKeys.includes(key)&&typeof value==='string'));
+        patch.deviceStyles=patch.deviceStyles||{};
+        patch.deviceStyles[device]={...(patch.deviceStyles[device]||{}),...valid};
+        setDirty();snapshot();applyToFrame();renderProperties();
+      }
+    }
+    if(data.type==='vb:canvas-ready')toast('Direct canvas controls ready: drag, resize and align elements.');
+    if(data.type==='vb:shortcut' && data.action==='undo')$('#veUndo').click();
+    if(data.type==='vb:shortcut' && data.action==='redo')$('#veRedo').click();
     if (data.type === 'vb:deleted') { deleteSelected(); }
   });
 
