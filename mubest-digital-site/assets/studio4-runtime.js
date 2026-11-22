@@ -6,11 +6,10 @@
   const page = pagePath.startsWith('/about') ? 'about' : pagePath.startsWith('/services') ? 'services' : pagePath.startsWith('/portfolio') ? 'portfolio' : pagePath.startsWith('/contact') ? 'contact' : 'home';
   async function load() {
     try {
-      const [contentResponse, layoutResponse] = await Promise.all([
-        fetch('/api/public-content', { cache:'no-store' }).catch(() => null),
-        fetch(`/api/visual-layout?page=${page}`, { cache:'no-store' }).catch(() => null)
+      const [content, layoutResponse] = await Promise.all([
+        (window.MubestPublicContentPromise ||= fetch('/api/public-content',{cache:'no-store'}).then(async response=>response.ok?response.json():{})).catch(()=>({})),
+        fetch(`/api/visual-layout?page=${page}`,{cache:'no-store'}).catch(()=>null)
       ]);
-      const content = contentResponse?.ok ? await contentResponse.json().catch(() => ({})) : {};
       const layout = layoutResponse?.ok ? (await layoutResponse.json().catch(() => ({}))).data?.layout : null;
       const scriptPath = String(content.settings?.analytics_script_url || '').trim();
       if (scriptPath.startsWith('/') && !scriptPath.startsWith('//') && !document.querySelector('[data-mubest-analytics]')) {
