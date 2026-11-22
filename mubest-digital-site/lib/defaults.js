@@ -31,6 +31,7 @@ export const DEFAULT_SETTINGS = {
   portfolio_hover_animation: "Lift",
   portfolio_scroll_animation: "Fade up",
   portfolio_motion_speed: "Balanced",
+  portfolio_service_categories: ["Website Design & Development","Shopify & Ecommerce","Email Marketing & Automation","Branding & Graphic Design","Social Media & Content","SEO & Digital Marketing","Integrations & Custom Systems"],
   hero_video_enabled: true,
   hero_video_url: "",
   hero_poster_url: "",
