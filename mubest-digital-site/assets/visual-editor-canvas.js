@@ -38,6 +38,13 @@
   const guides=['x','y'].map(axis=>{const div=doc.createElement('div');div.className='vb-smart-guide';div.dataset.axis=axis;doc.body.appendChild(div);return div;});
   const info=doc.createElement('div');info.className='vb-canvas-info';info.hidden=true;doc.body.appendChild(info);
   let snap=true,guidesEnabled=true,lock=false,drag=null,pointerType='';
+  window.addEventListener('message',event=>{
+    if(event.origin!==location.origin||event.source!==window.parent)return;
+    if(event.data?.type==='vb:canvas-settings'){
+      snap=event.data.snap!==false;guidesEnabled=event.data.guides!==false;
+      if(!guidesEnabled)hideGuides();
+    }
+  });
   const clamp=(n,min,max)=>Math.min(max,Math.max(min,n));
   const px=n=>Math.round(n)+'px';
   const round=n=>Math.round(n*10)/10;
@@ -158,7 +165,14 @@
   }
   window.MubestPremiumCanvasAction=action;
   doc.addEventListener('keydown',e=>{
-    if(e.target.isContentEditable||['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)||e.metaKey||e.ctrlKey||e.altKey)return;
+    if(e.target.isContentEditable||['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)||e.metaKey||e.altKey)return;
+    if(e.ctrlKey && e.key.toLowerCase()==='z'){
+      e.preventDefault();window.parent.postMessage({type:'vb:shortcut',action:e.shiftKey?'redo':'undo'},location.origin);return;
+    }
+    if(e.ctrlKey && e.key.toLowerCase()==='y'){
+      e.preventDefault();window.parent.postMessage({type:'vb:shortcut',action:'redo'},location.origin);return;
+    }
+    if(e.ctrlKey)return;
     const el=selected();if(!el||!canMove(el)||lock)return;
     if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){
       e.preventDefault();const old=parseTranslation(el.style.translate),step=e.shiftKey?10:1;
