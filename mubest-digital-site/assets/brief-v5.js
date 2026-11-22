@@ -91,6 +91,10 @@
     }
     const urlInput=step===1?$('#v5CurrentSite'):null;
     if(urlInput?.value&&!urlInput.checkValidity()){error('Enter a valid website URL beginning with https://');urlInput.focus();return false;}
+    if(step===3&&callRequested?.checked&&callDate?.value&&!callDate.checkValidity()){
+      error('Choose a valid preferred call date in the future, or leave the date blank for flexibility.');
+      callDate.focus();return false;
+    }
     if(step===3&&contactMethod.value==='WhatsApp'&&whatsappInput.value.trim().length<8){
       error('Add your WhatsApp number or choose Email as the preferred reply method.');
       whatsappInput.focus();return false;
