@@ -86,6 +86,24 @@
             <div class="v5-brief-field"><label for="v5Company">Business or organization <span>(optional)</span></label><input id="v5Company" name="company" type="text" autocomplete="organization" maxlength="160" placeholder="Business name"></div>
             <div class="v5-brief-field"><label for="v5ContactMethod">Preferred reply method</label><select id="v5ContactMethod" name="preferred_method"><option value="Email">Email</option><option value="WhatsApp">WhatsApp (include your number below)</option></select></div>
             <div class="v5-brief-field" id="v5WhatsappField" hidden><label for="v5Whatsapp">WhatsApp number</label><input id="v5Whatsapp" name="whatsapp_number" type="tel" maxlength="40" placeholder="+234..."></div>
+            <div class="v6-call-card">
+              <label class="v6-call-choice" for="v6CallRequested">
+                <input id="v6CallRequested" name="call_requested" type="checkbox">
+                <span><strong>I'd also like to request a discovery call</strong><small>Share your preferred time and I'll reply to arrange it. This isn't an instant booking.</small></span>
+              </label>
+              <div class="v6-call-fields" id="v6CallFields" hidden>
+                <label for="v6CallDate">Preferred date (optional)<input type="date" name="preferred_call_date" id="v6CallDate"></label>
+                <label for="v6CallWindow">Preferred time window<select name="preferred_call_window" id="v6CallWindow">
+                  <option value="">Choose a window</option>
+                  <option>Morning (9 AM–12 PM)</option>
+                  <option>Afternoon (12 PM–5 PM)</option>
+                  <option>Evening (5 PM–8 PM)</option>
+                  <option>Flexible — let's arrange it</option>
+                </select></label>
+                <label for="v6CallTimezone">Your timezone<input type="text" name="preferred_call_timezone" id="v6CallTimezone" maxlength="80" placeholder="e.g. Africa/Lagos"></label>
+                <p>Times are interpreted in your timezone. Sending a request does not confirm availability or create a calendar event.</p>
+              </div>
+            </div>
             <label class="v5-privacy-check"><input type="checkbox" name="consent" required><span>I agree to be contacted about this project brief. My details won't be added to a marketing list.</span></label>
           </div>
           <div class="v5-brief-error" id="v5BriefError" role="alert" aria-live="assertive" hidden></div>
