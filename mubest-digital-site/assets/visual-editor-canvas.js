@@ -77,6 +77,7 @@
     const old=parseTranslation(el.style.translate||getComputedStyle(el).translate);
     drag={el,id:event.pointerId,mode,edge,x:event.clientX,y:event.clientY,rect,bound,old,width:rect.width,height:rect.height,styles:{},active:mode==='resize',shift:false};
     pointerType=event.pointerType;
+    try{event.target.setPointerCapture(event.pointerId);}catch{}
     doc.documentElement.classList.add('vb-dragging');
     if(mode==='resize')event.preventDefault();
   }
