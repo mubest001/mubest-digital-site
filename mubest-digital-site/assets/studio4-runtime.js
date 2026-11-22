@@ -31,7 +31,7 @@
     } catch (error) { console.warn('Mubest Studio 4.0 runtime could not load:', error); }
   }
   const layoutScript = document.createElement('script');
-  layoutScript.src = '/assets/visual-layout-runtime.js';
+  layoutScript.src = '/assets/visual-layout-runtime.js?v=2-device';
   layoutScript.onload = load;
   document.body.appendChild(layoutScript);
 })();
