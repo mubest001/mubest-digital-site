@@ -5,6 +5,7 @@
   const root = document.querySelector('main') || document.body;
   let selected = null;
   let dragged = null;
+  let previewDevice = 'desktop';
   let overlay;
   let moveHandle;
   const style = document.createElement('style');
@@ -140,7 +141,20 @@
       if (node) node.textContent=value; else el.insertBefore(document.createTextNode(value),el.firstChild);
     } else if (el.textContent !== value) el.textContent=value;
   }
-  function applyStyles(el, styles) { if (!el || !styles) return; Object.entries(styles).forEach(([k,v]) => { if (v !== '') el.style[k]=v; }); }
+  const originalGeometry=new WeakMap();
+  const deviceKeys=['translate','width','height','minHeight','maxWidth','zIndex'];
+  function effectiveDevice(){return previewDevice;}
+  function applyStyles(el, styles, deviceStyles) {
+    if (!el) return;
+    if(!originalGeometry.has(el)){
+      originalGeometry.set(el,Object.fromEntries(deviceKeys.map(key=>[key,el.style[key]||''])));
+    }
+    const original=originalGeometry.get(el);
+    deviceKeys.forEach(key=>{el.style[key]=original[key];});
+    if(styles)Object.entries(styles).forEach(([k,v])=>{if(v!=='')el.style[k]=v;});
+    const selected=deviceStyles?.[effectiveDevice()]||{};
+    Object.entries(selected).forEach(([key,value])=>{if(value!=='')el.style[key]=value;});
+  }
   const socialPlatformNames={instagram:'Instagram',linkedin:'LinkedIn',facebook:'Facebook',tiktok:'TikTok',youtube:'YouTube',x:'X',pinterest:'Pinterest',whatsapp:'WhatsApp'};
   function socialUrl(raw){const v=String(raw||'').trim();return /^https?:\/\//i.test(v)?v:'';}
   function drawSocial(el,links){
@@ -178,7 +192,7 @@
       if (p.src !== undefined && ['img','video'].includes(el.tagName.toLowerCase())) el.setAttribute('src', p.src);
       if (p.alt !== undefined && el.tagName.toLowerCase() === 'img') el.setAttribute('alt', p.alt);
       el.classList.toggle('vb-hidden-preview', p.hidden === true);
-      applyStyles(el, p.styles);
+      applyStyles(el, p.styles, p.deviceStyles);
     });
     (state.moves || []).forEach(move => {
       const el = findSelector(move.selector), parent = findSelector(move.parentSelector), before = move.beforeSelector ? findSelector(move.beforeSelector) : null;
@@ -200,7 +214,7 @@
       if (item.src && ['img','video'].includes(el.tagName.toLowerCase())) el.src = item.src;
       if (item.alt && el.tagName.toLowerCase() === 'img') el.alt = item.alt;
       if(item.type==='social')drawSocial(el,item.links);
-      applyStyles(el, item.styles); if (item.hidden) el.style.display = 'none'; else if (item.hidden === false) el.style.removeProperty('display');
+      applyStyles(el, item.styles, item.deviceStyles); if (item.hidden) el.style.display = 'none'; else if (item.hidden === false) el.style.removeProperty('display');
     });
     if (selected && selected.isConnected) positionOverlay();
   }
@@ -214,6 +228,9 @@
     if (event.origin !== location.origin || event.source !== window.parent) return;
     const data=event.data||{};
     if(data.type==='vb:apply-layout') applyLayout(data.layout);
+    if(data.type==='vb:set-device'){previewDevice=['desktop','tablet','mobile'].includes(data.device)?data.device:'desktop';applyLayout(currentLayout);}
+    if(data.type==='vb:select'){const el=findSelector(data.selector);if(el)select(el);}
+    if(data.type==='vb:canvas-action' && window.MubestPremiumCanvasAction) window.MubestPremiumCanvasAction(data.action);
     if(data.type==='vb:add'){
       const type=data.blockType; const id=`vb_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,7)}`;
       let parent,before;
@@ -228,5 +245,7 @@
     }
   });
   window.addEventListener('scroll',positionOverlay,{passive:true}); window.addEventListener('resize',positionOverlay);
+  window.MubestVisualBridge={getSelected:()=>selected,select,selectorFor,editableTarget,positionOverlay,root,overlay,getDevice:()=>previewDevice};
+  const premium=document.createElement('script');premium.src='/assets/visual-editor-canvas.js?v=1';premium.defer=true;document.body.appendChild(premium);
   send({type:'vb:ready'});
 })();

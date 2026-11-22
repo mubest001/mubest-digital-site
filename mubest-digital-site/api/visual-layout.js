@@ -3,7 +3,7 @@ import { requireAdmin, assertSameOrigin } from "../lib/auth.js";
 
 const PAGES = new Set(["home", "about", "services", "portfolio", "contact"]);
 const TYPES = new Set(["heading", "text", "image", "button", "video", "review", "section", "divider", "social"]);
-const STYLE_KEYS = new Set(["color", "backgroundColor", "fontSize", "fontWeight", "textAlign", "width", "maxWidth", "height", "minHeight", "padding", "paddingTop", "paddingBottom", "margin", "marginTop", "marginBottom", "marginLeft", "marginRight", "borderRadius", "objectFit", "alignSelf", "justifySelf", "display"]);
+const STYLE_KEYS = new Set(["color", "backgroundColor", "fontSize", "fontWeight", "textAlign", "width", "maxWidth", "height", "minHeight", "padding", "paddingTop", "paddingBottom", "margin", "marginTop", "marginBottom", "marginLeft", "marginRight", "borderRadius", "objectFit", "alignSelf", "justifySelf", "display", "translate", "zIndex", "opacity"]);
 const EMPTY = { version: 1, patches: [], added: [], moves: [] };
 const json = (res, status, data) => { res.setHeader("Cache-Control", "no-store"); return res.status(status).json(data); };
 const str = (v, max = 2000) => String(v ?? "").trim().slice(0, max);
@@ -31,6 +31,18 @@ function cleanStyles(value) {
   }
   return out;
 }
+const DEVICES = ["desktop", "tablet", "mobile"];
+const GEOMETRY_KEYS = new Set(["translate","width","height","minHeight","maxWidth","zIndex"]);
+function cleanDeviceStyles(value) {
+  const result = {};
+  if (!value || typeof value !== "object" || Array.isArray(value)) return result;
+  for (const device of DEVICES) {
+    const values = cleanStyles(value[device]);
+    const safe = Object.fromEntries(Object.entries(values).filter(([key]) => GEOMETRY_KEYS.has(key)));
+    if (Object.keys(safe).length) result[device] = safe;
+  }
+  return result;
+}
 function cleanLayout(input) {
   if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("The editor data is invalid.");
   const patches = Array.isArray(input.patches) ? input.patches : [];
@@ -38,7 +50,7 @@ function cleanLayout(input) {
   const moves = Array.isArray(input.moves) ? input.moves : [];
   if (patches.length > 250 || added.length > 100 || moves.length > 250) throw new Error("This page has reached the visual editor item limit.");
   const patchRows = patches.map(p => {
-    const row = { selector: selector(p.selector), styles: cleanStyles(p.styles) };
+    const row = { selector: selector(p.selector), styles: cleanStyles(p.styles), deviceStyles: cleanDeviceStyles(p.deviceStyles) };
     if (Object.hasOwn(p, "text")) row.text = str(p.text, 6000);
     if (Object.hasOwn(p, "href")) row.href = safeUrl(p.href, true);
     if (Object.hasOwn(p, "src")) row.src = safeUrl(p.src);
@@ -68,6 +80,7 @@ function cleanLayout(input) {
           .filter(([key,value]) => /^https:\/\//i.test(value))
       ) : {},
       styles: cleanStyles(item.styles),
+      deviceStyles: cleanDeviceStyles(item.deviceStyles),
       hidden: item.hidden === true
     };
   });

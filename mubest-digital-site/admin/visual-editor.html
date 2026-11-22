@@ -188,6 +188,7 @@ button,input,select,textarea{font:inherit}button,a{touch-action:manipulation;-we
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 
   </style>
+  <link rel="stylesheet" href="/assets/visual-editor-premium.css?v=1">
 </head>
 <body class="ve-body">
   <svg aria-hidden="true" class="ve-svg-symbols" xmlns="http://www.w3.org/2000/svg">
@@ -260,7 +261,7 @@ button,input,select,textarea{font:inherit}button,a{touch-action:manipulation;-we
         <button type="button" draggable="true" data-add="divider"><span class="ve-element-icon ve-char-icon">—</span><span class="ve-element-copy"><b>Divider</b><small>Separate content sections</small></span><span class="ve-element-drag" aria-hidden="true"><svg><use href="#ve-dots"/></svg></span></button>
       </div>
       <div id="veSearchEmpty" class="ve-search-empty" hidden>No matching components found.</div>
-      <div class="ve-left-help"><span class="ve-help-icon"><svg><use href="#ve-cursor"/></svg></span><div><strong>Build visually</strong><p>Click a component to insert it, or drag it onto the canvas. Select an element to edit its content and design.</p><a href="/admin/">Open Content Studio <span>↗</span></a></div></div>
+      <div class="ve-left-help"><span class="ve-help-icon"><svg><use href="#ve-cursor"/></svg></span><div><strong>Build visually</strong><p>Select a page element, then drag it directly to move it. Use the blue corners to resize it, with alignment guides and undo.</p><a href="/admin/">Open Content Studio <span>↗</span></a></div></div>
     </aside>
 
     <main class="ve-canvas-area">
@@ -272,6 +273,24 @@ button,input,select,textarea{font:inherit}button,a{touch-action:manipulation;-we
           <button type="button" data-device="mobile" aria-label="Mobile preview" aria-pressed="false" title="Mobile"><svg><use href="#ve-phone"/></svg></button>
         </div>
         <button id="veRefresh" type="button" class="ve-icon-button ve-refresh" aria-label="Refresh preview" title="Refresh preview"><svg><use href="#ve-refresh-icon"/></svg></button>
+      </div>
+      <div class="ve-premium-toolbar" role="toolbar" aria-label="Canvas design controls">
+        <span class="ve-premium-mode"><span class="ve-premium-mode-dot"></span> Direct editing</span>
+        <span class="ve-premium-divider"></span>
+        <button type="button" id="veSnapToggle" aria-pressed="true" title="Toggle 8px snap grid">⊞ Snap <span>ON</span></button>
+        <button type="button" id="veGuidesToggle" aria-pressed="true" title="Toggle alignment guides">⌗ Guides <span>ON</span></button>
+        <span class="ve-premium-divider"></span>
+        <button type="button" data-premium-action="left" title="Align selected element left">⇤ Left</button>
+        <button type="button" data-premium-action="center" title="Center selected element horizontally">↔ Center</button>
+        <button type="button" data-premium-action="right" title="Align selected element right">Right ⇥</button>
+        <button type="button" data-premium-action="front" title="Bring selected element forward">↑ Front</button>
+        <button type="button" data-premium-action="back" title="Send selected element backward">↓ Back</button>
+        <button type="button" data-premium-action="reset" title="Reset position and size">↺ Reset</button>
+        <button type="button" id="veDuplicate" title="Duplicate a custom element">⧉ Duplicate</button>
+        <button type="button" id="veShowLayers" title="Show added element layers">▣ Layers</button>
+        <button type="button" data-premium-action="check-overlaps" title="Check selected section for overlapping content">◎ Check layout</button>
+        <span class="ve-premium-divider"></span>
+        <label class="ve-premium-zoom" for="veCanvasZoom">Zoom <select id="veCanvasZoom" aria-label="Canvas zoom"><option value="fit">Fit</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="1">100%</option></select></label>
       </div>
       <div class="ve-frame-stage" id="veFrameStage">
         <div class="ve-frame-shell" id="veFrameShell"><iframe id="vePreview" title="Live website visual editor preview" src="about:blank"></iframe></div>
@@ -293,7 +312,8 @@ button,input,select,textarea{font:inherit}button,a{touch-action:manipulation;-we
     </aside>
   </div>
   <div id="veToast" class="ve-toast" role="status" aria-live="polite"></div>
-  <script src="/assets/visual-editor.js?v=7" defer></script>
+  <script src="/assets/visual-editor.js?v=8-premium" defer></script>
+  <script src="/assets/visual-editor-toolbar.js?v=1" defer></script>
   <script>
 (() => {
   'use strict';
@@ -332,8 +352,8 @@ button,input,select,textarea{font:inherit}button,a{touch-action:manipulation;-we
   function categorize() {
     $$('.ve-prop-group',props).forEach(group => {
       const title = String(group.querySelector('h3')?.textContent || '').trim().toLowerCase();
-      group.dataset.veGroup = title.includes('appearance') ? 'design' :
-        title.includes('visibility') ? 'advanced' : 'content';
+      group.dataset.veGroup = title.includes('appearance') || title.includes('position') ? 'design' :
+        title.includes('visibility') || title.includes('layers') ? 'advanced' : 'content';
     });
   }
 
