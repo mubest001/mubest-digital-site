@@ -233,7 +233,7 @@ async function streamAssistant(req,res,messages,settings){
           const providerCode=clean(detail.code||detail.type||"unknown",90);
           console.error("Mubest AI provider stream error:",event.type,providerCode);
           let visitorMessage="The AI service could not complete that reply. Please try again.";
-          if(["insufficient_quota","billing_not_active","billing_hard_limit_reached"].includes(providerCode))
+          if(["insufficient_quota","billing_not_active","billing_hard_limit_reached","credit_balance_exhausted"].includes(providerCode))
             visitorMessage="The AI account needs an API billing update. Please use the contact form for now.";
           else if(["model_not_found","invalid_model","unsupported_model"].includes(providerCode))
             visitorMessage="The AI model needs an administrator update. Please use the contact form for now.";
