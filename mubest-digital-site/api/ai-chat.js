@@ -10,7 +10,7 @@ export const config = { maxDuration: 45 };
 
 const MAX_HISTORY = 14;
 const USER_CHARS = 1800;
-const ASSISTANT_CHARS = 2100;
+const ASSISTANT_CHARS = 3500;
 const VISITOR_DAILY_LIMIT = 25;
 const GLOBAL_DAILY_LIMIT = 150;
 const OPENAI_ENDPOINT = "https://api.openai.com/v1/responses";
@@ -33,7 +33,8 @@ function publicConfig(settings={},keyAvailable=false){
     welcome:clean(settings.ai_assistant_welcome||DEFAULT_SETTINGS.ai_assistant_welcome,280),
     suggestions:[
       "What services does Mubest Digital offer?",
-      "Can you tell me about recent projects?",
+      "Who is behind Mubest Digital?",
+      "Can you show me relevant portfolio projects?",
       "How can I start a project?"
     ],
     poweredBy:"OpenAI"
