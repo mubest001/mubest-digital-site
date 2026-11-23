@@ -42,7 +42,7 @@ if(!editorPreview){
   const premium=document.createElement('script');premium.src='/assets/premium-v5.js?v=1';premium.defer=true;document.body.appendChild(premium);
 }
 if(!editorPreview){
-  const assistant=document.createElement('script');assistant.src='/assets/ai-widget.js?v=1';assistant.defer=true;document.body.appendChild(assistant);
+  const assistant=document.createElement('script');assistant.src='/assets/ai-widget.js?v=gemini-1';assistant.defer=true;document.body.appendChild(assistant);
 }
 
 const cmsScript=document.createElement('script');cmsScript.src='/assets/cms-public.js?v=premium-v5-1';cmsScript.defer=true;

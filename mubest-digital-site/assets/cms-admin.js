@@ -49,9 +49,9 @@
   // These keys are persisted to Neon site_settings, then read by public-content.
   const settingGroups={
     aiassistant:{
-      intro:'Give website visitors natural, helpful conversations about Mubest Digital using approved public knowledge and an OpenAI model.',
+      intro:'Give visitors natural conversations about Mubest Digital using approved public information and the Google Gemini free API tier.',
       groups:[
-        {title:'Visitor experience',description:'Choose the name and welcome message. The floating chat assistant becomes visible when it is enabled and the OpenAI connection is configured.',fields:[
+        {title:'Visitor experience',description:'Choose the name and welcome message. The floating assistant appears when enabled and the Gemini API key is connected. Free quotas can change.',fields:[
           ['ai_assistant_enabled','Enable the public AI assistant','checkbox'],
           ['ai_assistant_name','Assistant name'],
           ['ai_assistant_welcome','Welcome message','textarea']
@@ -446,14 +446,14 @@
     if(view==='aiassistant'){
       const banner=document.createElement('section');
       banner.className='md-ai-admin-status panel-card';
-      banner.innerHTML='<div class="md-ai-admin-badge">✳ OPENAI-POWERED ASSISTANT</div><h3>Real conversations, grounded in your website.</h3><p>The assistant reads published website content plus the professional details you approve below. It does <strong>not</strong> automatically read your ChatGPT conversations or personal memories.</p><div class="md-ai-admin-connection" id="mdAiConnection" role="status">Checking API connection…</div><div class="md-ai-admin-steps"><strong>Connect OpenAI securely</strong><p>1. Create an API key in <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">OpenAI API keys ↗</a>.<br>2. In <strong>Vercel → Mubest Digital → Settings → Environment Variables</strong>, add the secret named <code>OPENAI_API_KEY</code> to Production (and Preview if desired).<br>3. Redeploy the site. The widget appears automatically once the key and enabled setting are both present.</p><p>ChatGPT subscriptions and OpenAI API usage are billed separately. Never paste a secret API key into this dashboard or into your public website code.</p></div><div class="md-ai-admin-test"><button id="mdAiTestButton" type="button" class="admin-button primary" disabled>✳ Test AI response</button><small>Requires an active OpenAI API account. A test uses billed API tokens.</small><pre id="mdAiTestOutput" hidden aria-live="polite"></pre></div><div class="md-ai-admin-links"><a class="admin-button ghost" href="/" target="_blank" rel="noopener noreferrer">View website ↗</a><a class="admin-button ghost" href="/start-project/" target="_blank" rel="noopener noreferrer">Project enquiries ↗</a></div>';
+      banner.innerHTML='<div class="md-ai-admin-badge">✳ GOOGLE GEMINI AI ASSISTANT</div><h3>Natural conversations, grounded in your website.</h3><p>The assistant uses published website content and the professional details you approve below. It does <strong>not</strong> read your private ChatGPT or Gemini conversations.</p><div class="md-ai-admin-connection" id="mdAiConnection" role="status">Checking Gemini connection…</div><div class="md-ai-admin-steps"><strong>Connect Google Gemini securely (free tier)</strong><p>1. Create a Gemini API key in <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio ↗</a> using an eligible free-tier project.<br>2. In <strong>Vercel → Mubest Digital → Settings → Environment Variables</strong>, add <code>GEMINI_API_KEY</code> as a sensitive Production secret. The old OpenAI key is no longer used by this assistant.<br>3. Redeploy, then return here and choose <strong>Test AI response</strong>.</p><p>Default model: <code>gemini-3.1-flash-lite</code>. If your Google AI Studio project supports a different free-tier model, set optional <code>GEMINI_MODEL</code> in Vercel. Do not add an API key to this form, GitHub or browser code.</p><p><strong>Free-tier privacy:</strong> Google says free-tier content may be used to improve its products. Avoid private client information, passwords and confidential data. Free-tier quotas and availability depend on your project and region.</p></div><div class="md-ai-admin-test"><button id="mdAiTestButton" type="button" class="admin-button primary" disabled>✳ Test Gemini response</button><small>Requires a valid Gemini key and model quota. Testing sends a short message to Google and counts toward your API usage.</small><pre id="mdAiTestOutput" hidden aria-live="polite"></pre></div><div class="md-ai-admin-links"><a class="admin-button ghost" href="/" target="_blank" rel="noopener noreferrer">View website ↗</a><a class="admin-button ghost" href="/start-project/" target="_blank" rel="noopener noreferrer">Project enquiries ↗</a></div>';
       const first=panel.querySelector('.settings-section');
       if(first)first.before(banner);else panel.append(banner);
       fetch('/api/ai-chat',{cache:'no-store'}).then(r=>r.json()).then(status=>{
         const el=$('#mdAiConnection',panel);if(!el)return;
         el.classList.toggle('is-ready',Boolean(status.available));
         el.classList.toggle('is-pending',!status.available);
-        el.textContent=status.available?'● API key detected and assistant enabled. Send a test conversation after connecting billing to verify live replies.':status.enabled===false?'○ Assistant disabled in Content Studio. Turn it on when ready.':'○ OpenAI API key not connected yet. Live AI chat remains hidden until you configure it.';
+        el.textContent=status.available?'● Gemini API key detected and assistant enabled. Use Test Gemini response to verify the model and your free quota.':!status.keyConnected?'○ GEMINI_API_KEY is missing. The public AI chat is hidden until you connect it in Vercel.':status.enabled===false?'○ Assistant disabled in Content Studio. Enable it after checking your approved public facts.':'○ Gemini is not ready. Check the Vercel key and Content Studio settings.';
         const test=$('#mdAiTestButton',panel),output=$('#mdAiTestOutput',panel);
         if(!test||!output)return;
         test.disabled=!status.available;
@@ -483,7 +483,7 @@
                 if(type==='error')throw new Error(data.message||'Provider stream error.');
               }
             }
-            if(!result)throw new Error('The AI returned no text. Check the model and OpenAI API billing.');
+            if(!result)throw new Error('Gemini returned no text. Check the selected model and Google AI Studio free-tier usage limits.');
             output.textContent='✓ AI responded successfully.\n\n'+result.slice(0,1700);
           }catch(error){output.textContent='Connection test failed: '+(error.message||'Unknown error');}
           finally{test.disabled=false;}
