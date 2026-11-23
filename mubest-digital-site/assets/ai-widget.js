@@ -39,13 +39,33 @@
   function renderAssistantText(node,text){
     node.replaceChildren();
     const sections=String(text||"").split(/\n{2,}/).slice(0,14);
-    for(const paragraph of sections){
-      const p=document.createElement("p");
-      for(const [index,line] of paragraph.split("\n").entries()){
-        if(index)p.append(document.createElement("br"));
-        appendTextWithLinks(p,line);
+    for(const section of sections){
+      // Plain line-by-line presentation for services; never display raw Markdown
+      // list markers such as "* Website Design" or "**Email Marketing**".
+      let paragraph=null,linesGroup=null;
+      for(const rawLine of section.split("\n")){
+        const item=rawLine.match(/^\s*(?:[*•-]\s+|\d+[.)]\s+)(.*)$/);
+        const content=(item?item[1]:rawLine).replace(/\*\*/g,"");
+        if(item){
+          paragraph=null;
+          if(!linesGroup){
+            linesGroup=document.createElement("div");
+            linesGroup.className="md-ai-clean-list";
+            node.append(linesGroup);
+          }
+          const line=document.createElement("div");
+          line.className="md-ai-clean-line";
+          appendTextWithLinks(line,content);
+          linesGroup.append(line);
+        }else{
+          linesGroup=null;
+          if(!paragraph){
+            paragraph=document.createElement("p");
+            node.append(paragraph);
+          }else paragraph.append(document.createElement("br"));
+          appendTextWithLinks(paragraph,content);
+        }
       }
-      node.append(p);
     }
   }
   function scrollToBottom(){const area=$("#md-ai-messages",dialog);if(area)area.scrollTop=area.scrollHeight;}
@@ -191,12 +211,14 @@
     }
   }
   function buildWidget(){
-    const style=document.createElement("link");style.rel="stylesheet";style.href="/assets/ai-widget.css?v=1";style.dataset.mubestAiStyle="";document.head.append(style);
+    const style=document.createElement("link");style.rel="stylesheet";style.href="/assets/ai-widget.css?v=logo2";style.dataset.mubestAiStyle="";document.head.append(style);
     history=readSession();
     launcher=document.createElement("button");launcher.type="button";launcher.id="md-ai-launcher";launcher.className="md-ai-launcher";
     launcher.setAttribute("aria-haspopup","dialog");launcher.setAttribute("aria-controls","md-ai-panel");launcher.setAttribute("aria-expanded","false");
     launcher.setAttribute("aria-label","Chat with "+config.name);
-    launcher.innerHTML='<span class="md-ai-launcher-icon">'+icons.spark+'</span><span class="md-ai-launcher-text">Ask '+escape(config.name)+'</span><span class="md-ai-online-pip" aria-hidden="true"></span>';
+    // Icon-only by default. Reveal the full assistant name on pointer hover
+    // or keyboard focus; screen readers always have the accessible label.
+    launcher.innerHTML='<span class="md-ai-launcher-icon" aria-hidden="true">'+icons.spark+'</span><span class="md-ai-launcher-text" aria-hidden="true">'+escape(config.name)+'</span><span class="md-ai-online-pip" aria-hidden="true"></span>';
     document.body.append(launcher);
     dialog=document.createElement("section");
     dialog.id="md-ai-panel";dialog.className="md-ai-panel";dialog.setAttribute("role","dialog");dialog.setAttribute("aria-modal","false");dialog.setAttribute("aria-label",config.name+" chat");dialog.hidden=true;
