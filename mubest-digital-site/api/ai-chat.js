@@ -28,13 +28,14 @@ const SETTINGS_KEYS = [
 const clean = (value,limit=2000)=>String(value??"").trim().slice(0,limit);
 const object = value=>value&&typeof value==="object"&&!Array.isArray(value)?value:{};
 const textVal = value=>typeof value==="string"?value:"";
-const notSafe = /(?:^|\s)(?:sk-[A-Za-z0-9_-]{16,}|password\s*[:=]|private[_ ]?key\s*[:=])/i;
+const notSafe = /(?:AIza[A-Za-z0-9_-]{30,}|sk-[A-Za-z0-9_-]{16,}|(?:password|private[_ ]?key|gemini_api_key|openai_api_key)\s*[:=])/i;
 
 function publicConfig(settings={},keyAvailable=false){
   const enabled=settings.ai_assistant_enabled!==false;
   return {
     available:Boolean(keyAvailable && enabled),
     enabled,
+    keyConnected:Boolean(keyAvailable),
     name:clean(settings.ai_assistant_name||DEFAULT_SETTINGS.ai_assistant_name,48),
     welcome:clean(settings.ai_assistant_welcome||DEFAULT_SETTINGS.ai_assistant_welcome,280),
     suggestions:[
