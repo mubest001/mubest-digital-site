@@ -182,11 +182,45 @@ function sendSSE(res,type,data={}){
 function safeProviderCode(value){
   return clean(String(value||"unknown").replace(/[^a-zA-Z0-9_-]/g,"_"),85);
 }
-function geminiErrorMessage(httpStatus,code){
+// Google can return the same 403 code for invalid keys, disabled APIs,
+// account restrictions and ineligible free-tier projects. Classify *locally*
+// without sending the provider's raw error message to visitors or logs.
+function geminiAccessReason(error){
+  const source=String(error?.message||"").slice(0,1100).toLowerCase();
+  const status=String(error?.status||"").toLowerCase();
+  const details=Array.isArray(error?.details)
+    ? error.details.map(item=>String(item?.reason||item?.metadata?.service||"")).join(" ").slice(0,350).toLowerCase()
+    : "";
+  const description=source+" "+status+" "+details;
+  if(/free[ -]?tier[^.\n]*(unavailable|not available|ineligible|denied|restricted)|free[ -]?tier[ _-]?unavailable/.test(description))
+    return "free_tier_unavailable";
+  if(/project has been denied access|project (is |was )?restricted|project[^.\n]*(denied access|suspended)/.test(description))
+    return "project_restricted";
+  if(/leaked key|key reported as leaked|api key[^.\n]*(blocked|disabled|revoked)/.test(description))
+    return "key_blocked";
+  if(/api key[^.\n]*(not valid|invalid|expired)|invalid api key|api_key_invalid/.test(description))
+    return "invalid_key";
+  if(/(?:generative language|generativelanguage|api)[^.\n]*(not enabled|disabled|not used)|service_disabled|api has not been used/.test(description))
+    return "api_disabled";
+  if(/(?:referer|referrer|ip address|ip restriction|not allowed to use this api)/.test(description))
+    return "key_restriction";
+  return "permission_denied";
+}
+function geminiErrorMessage(httpStatus,code,accessReason=""){
   if(httpStatus===429 || /resource_exhausted|quota_exceeded|rate_limit/i.test(code))
     return "The free AI tier has reached a usage limit. Please try again later or contact Mubest Digital.";
+  if(accessReason==="free_tier_unavailable")
+    return "Google Gemini's free tier is unavailable for this API project. The site owner must check the project status in Google AI Studio.";
+  if(accessReason==="project_restricted")
+    return "Google has restricted this Gemini project. The site owner must review its access status in Google AI Studio.";
+  if(accessReason==="invalid_key"||accessReason==="key_blocked")
+    return "This Gemini API key was rejected or blocked. The site owner must replace it with an authorized Google AI Studio key.";
+  if(accessReason==="api_disabled")
+    return "The Gemini API is not enabled for this Google Cloud project. The site owner must enable it in Google Cloud.";
+  if(accessReason==="key_restriction")
+    return "The Gemini API key restrictions are blocking this server. The site owner must review its key permissions.";
   if(httpStatus===401||httpStatus===403||/permission_denied|api_key_invalid|unauthenticated/i.test(code))
-    return "The Gemini API key or project permission needs administrator attention. Please use the contact form for now.";
+    return "Google denied access to this Gemini project (403). The site owner must check its free-tier and API key permissions in Google AI Studio.";
   if(httpStatus===404||/not_found|model_not_found/i.test(code))
     return "The configured Gemini model is not available for this project. Please contact Mubest Digital.";
   if(httpStatus===400||/invalid_argument/i.test(code))
@@ -231,8 +265,11 @@ async function streamAssistant(req,res,messages,settings){
       // prompts, secrets, or personal data.
       const body=await upstream.json().catch(()=>({}));
       const code=safeProviderCode(body?.error?.status||"http_"+upstream.status);
-      console.error("Mubest Gemini upstream error:",upstream.status,code);
-      throw Object.assign(new Error(geminiErrorMessage(upstream.status,code)),{status:503,publicMessage:true});
+      const accessReason=upstream.status===401||upstream.status===403
+        ? geminiAccessReason(body?.error):"not_applicable";
+      // Deliberately exclude raw Google error messages and keys from logs.
+      console.error("Mubest Gemini upstream error:",upstream.status,code,accessReason);
+      throw Object.assign(new Error(geminiErrorMessage(upstream.status,code,accessReason)),{status:503,publicMessage:true});
     }
     if(!upstream.body)throw Object.assign(new Error("The Gemini response stream did not start."),{status:502,publicMessage:true});
     res.statusCode=200;
@@ -253,8 +290,9 @@ async function streamAssistant(req,res,messages,settings){
       let event;try{event=JSON.parse(jsonData);}catch{return;}
       if(event.error){
         const code=safeProviderCode(event.error?.status||event.error?.code||"stream_error");
-        console.error("Mubest Gemini stream error:",code);
-        sendSSE(res,"error",{message:geminiErrorMessage(0,code)});
+        const accessReason=geminiAccessReason(event.error);
+        console.error("Mubest Gemini stream error:",code,accessReason);
+        sendSSE(res,"error",{message:geminiErrorMessage(0,code,accessReason)});
         stop=true;return;
       }
       if(event?.promptFeedback?.blockReason){
