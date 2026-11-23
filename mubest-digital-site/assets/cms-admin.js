@@ -471,10 +471,10 @@
             while(true){
               const chunk=await reader.read();if(chunk.done)break;
               buffer+=decoder.decode(chunk.value,{stream:true});
-              const events=buffer.split(/\\r?\\n\\r?\\n/);buffer=events.pop()||'';
+              const events=buffer.split(/\r?\n\r?\n/);buffer=events.pop()||'';
               for(const event of events){
-                const type=event.split(/\\r?\\n/).find(line=>line.startsWith('event:'))?.slice(6).trim();
-                const raw=event.split(/\\r?\\n/).find(line=>line.startsWith('data:'))?.slice(5).trim();
+                const type=event.split(/\r?\n/).find(line=>line.startsWith('event:'))?.slice(6).trim();
+                const raw=event.split(/\r?\n/).find(line=>line.startsWith('data:'))?.slice(5).trim();
                 if(!raw)continue;
                 let data={};try{data=JSON.parse(raw);}catch{}
                 if(type==='delta'&&typeof data.text==='string'){
@@ -484,7 +484,7 @@
               }
             }
             if(!result)throw new Error('The AI returned no text. Check the model and OpenAI API billing.');
-            output.textContent='✓ AI responded successfully.\\n\\n'+result.slice(0,1700);
+            output.textContent='✓ AI responded successfully.\n\n'+result.slice(0,1700);
           }catch(error){output.textContent='Connection test failed: '+(error.message||'Unknown error');}
           finally{test.disabled=false;}
         });
