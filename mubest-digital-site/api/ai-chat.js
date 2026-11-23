@@ -172,7 +172,7 @@ function sendSSE(res,type,data={}){
 async function streamAssistant(req,res,messages,settings){
   const knowledge=await buildPublicKnowledge(settings);
   await countUsage(req);
-  const model=clean(process.env.OPENAI_ASSISTANT_MODEL||"gpt-6.1-terra",90);
+  const model=clean(process.env.OPENAI_ASSISTANT_MODEL||"gpt-4.1-mini",90);
   const controller=new AbortController();
   const timeout=setTimeout(()=>controller.abort(),32000);
   let upstream;
@@ -185,7 +185,6 @@ async function streamAssistant(req,res,messages,settings){
       },
       body:JSON.stringify({
         model,
-        reasoning: { effort: "low" },
         instructions:systemInstructions(knowledge,settings.ai_assistant_name),
         input:messages,
         max_output_tokens:650,
