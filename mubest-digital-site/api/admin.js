@@ -242,13 +242,20 @@ async function saveSettings(data, admin) {
     "announcement_enabled","announcement_text","announcement_link_label","announcement_url",
     "footer_tagline","footer_note","footer_cta_label","layout_sections","portfolio_service_categories",
     "portfolio_columns_desktop","portfolio_home_columns","portfolio_columns_tablet","portfolio_columns_mobile",
-    "portfolio_gap","portfolio_hover_animation","portfolio_scroll_animation","portfolio_motion_speed"
+    "portfolio_gap","portfolio_hover_animation","portfolio_scroll_animation","portfolio_motion_speed", "ai_assistant_enabled","ai_assistant_name","ai_assistant_welcome","ai_assistant_public_bio","ai_assistant_approved_facts"
   ]);
   for (const [key,value] of Object.entries(data || {})) {
     if (!allowed.has(key)) continue;
     const [old] = await query("SELECT value FROM site_settings WHERE key=$1",[key]);
     if (old) await revision(admin.user_id,"settings",key,{key,value:old.value});
-    const safeValue = key === "layout_sections" ? sanitizeLayouts(value) : key === "portfolio_service_categories" ? normalizeServiceCategories(value) : value;
+    const safeValue = key === "layout_sections" ? sanitizeLayouts(value)
+      : key === "portfolio_service_categories" ? normalizeServiceCategories(value)
+      : key === "ai_assistant_enabled" ? bool(value)
+      : key === "ai_assistant_name" ? text(value,48)
+      : key === "ai_assistant_welcome" ? text(value,280)
+      : key === "ai_assistant_public_bio" ? text(value,6000)
+      : key === "ai_assistant_approved_facts" ? text(value,8500)
+      : value;
     await query(
       "INSERT INTO site_settings (key,value) VALUES ($1,$2::jsonb) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",
       [key,JSON.stringify(safeValue)]

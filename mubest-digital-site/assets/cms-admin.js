@@ -11,8 +11,8 @@
   const safeUrl=value=>{const v=String(value||'').trim();return /^https?:\/\//i.test(v)||(/^\/(?!\/)/.test(v))?v:'';};
   const toast=(message,error=false)=>{const el=$('#toast');if(!el)return;el.textContent=message;el.className='toast show'+(error?' error':'');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.className='toast',4000);};
   const state={view:'overview',data:{},page:'home',pageRows:[],filter:'all',search:'',media:[],editorResource:null,editorItem:null,mediaTarget:null,settings:{}};
-  const titles={overview:'Overview',leads:'Enquiries',pages:'Pages',portfolio:'Portfolio',services:'Services',testimonials:'Testimonials',faqs:'FAQs',media:'Media library',branding:'Brand identity',homepage:'Homepage & hero',navigation:'Header & footer',seo:'SEO & sharing',contactsettings:'Contact & social',activity:'Activity & revisions',layout:'Visual layout builder',portfoliodesign:'Portfolio appearance',portfoliocategories:'Portfolio categories'};
-  const settingsViews=['branding','homepage','navigation','seo','contactsettings','layout','portfoliodesign','portfoliocategories'];
+  const titles={overview:'Overview',leads:'Enquiries',pages:'Pages',portfolio:'Portfolio',services:'Services',testimonials:'Testimonials',faqs:'FAQs',media:'Media library',branding:'Brand identity',homepage:'Homepage & hero',navigation:'Header & footer',seo:'SEO & sharing',contactsettings:'Contact & social',activity:'Activity & revisions',layout:'Visual layout builder',portfoliodesign:'Portfolio appearance',portfoliocategories:'Portfolio categories',aiassistant:'AI assistant'};
+  const settingsViews=['branding','homepage','navigation','seo','contactsettings','layout','portfoliodesign','portfoliocategories','aiassistant'];
   const pageUrl={home:'/',about:'/about/',services:'/services/',portfolio:'/portfolio/',contact:'/contact/'};
 
   const pageGroups={
@@ -48,6 +48,22 @@
 
   // These keys are persisted to Neon site_settings, then read by public-content.
   const settingGroups={
+    aiassistant:{
+      intro:'Give website visitors natural, helpful conversations about Mubest Digital using approved public knowledge and an OpenAI model.',
+      groups:[
+        {title:'Visitor experience',description:'Choose the name and welcome message. The floating chat assistant becomes visible when it is enabled and the OpenAI connection is configured.',fields:[
+          ['ai_assistant_enabled','Enable the public AI assistant','checkbox'],
+          ['ai_assistant_name','Assistant name'],
+          ['ai_assistant_welcome','Welcome message','textarea']
+        ]},
+        {title:'About you · approved public profile',description:'Tell the assistant only the professional details you want clients to know. Never add private messages, passwords, personal addresses, or confidential client data.',fields:[
+          ['ai_assistant_public_bio','Your public professional story, experience and approach','textarea']
+        ]},
+        {title:'Additional approved answers',description:'Optional extra facts, policies, work process or frequently asked questions. Use one fact or question/answer per line. The assistant also reads published services, portfolio projects, About content and FAQs automatically.',fields:[
+          ['ai_assistant_approved_facts','Approved public details and answers','textarea']
+        ]}
+      ]
+    },
     portfoliocategories:{intro:'Organize your portfolio by service. These categories appear in the website Portfolio dropdown and on the portfolio page.',groups:[
       {title:'Service categories',description:'Enter one service category per line. Use clear names clients will recognize. Assign categories to projects in Portfolio → Edit project.',fields:[['portfolio_service_categories','Category names (one per line)','textarea']]}
     ]},
@@ -420,13 +436,60 @@
           const val=settings[key]!==undefined?settings[key]:({hero_video_enabled:true,show_home_services:true,show_home_work:true,show_home_process:true,show_home_about:true,show_home_faq:true,show_home_testimonials:true,show_home_cta:true}[key]??'');
           const raw=Array.isArray(val)?val.join('\n'):String(val??'');
           if(type==='checkbox')return `<label class="full"><input type="checkbox" name="${esc(key)}" ${val===true||val==='true'?'checked':''}> <span>${esc(label)}</span></label>`;
-          if(type==='textarea')return `<label class="full">${esc(label)}<textarea name="${esc(key)}" rows="4">${esc(raw)}</textarea></label>`;
+          if(type==='textarea')return `<label class="full">${esc(label)}<textarea name="${esc(key)}" rows="${key==='ai_assistant_public_bio'||key==='ai_assistant_approved_facts'?'9':'4'}">${esc(raw)}</textarea></label>`;
           if(type==='select')return `<label>${esc(label)}<select name="${esc(key)}">${options.map(o=>`<option value="${esc(o)}" ${val===o?'selected':''}>${esc(o)}</option>`).join('')}</select></label>`;
           if(type==='image')return `<label class="full">${esc(label)}<span class="image-input-row"><input name="${esc(key)}" value="${esc(raw)}" placeholder="Choose media or enter URL"><button type="button" class="admin-button ghost" data-pick-image="${esc(key)}">${icon('image')} Media</button></span>${safeUrl(raw)&&!(/\.mp4(?:\?|$)/i.test(raw))?`<span class="image-preview"><img src="${esc(safeUrl(raw))}" alt="Image preview"></span>`:''}</label>`;
           if(type==='color')return `<label>${esc(label)}<input type="color" name="${esc(key)}" value="${/^#[0-9a-fA-F]{6}$/.test(raw)?esc(raw):'#4563f5'}"></label>`;
           return `<label>${esc(label)}<input name="${esc(key)}" type="${type==='email'?'email':'text'}" value="${esc(raw)}"></label>`;
         }).join('')+
         `<div class="form-footer"><small>Only fields in this card are saved.</small><button type="submit" class="admin-button primary">${icon('check')} Save ${esc(g.title.toLowerCase())}</button></div></form></div>`).join('');
+    if(view==='aiassistant'){
+      const banner=document.createElement('section');
+      banner.className='md-ai-admin-status panel-card';
+      banner.innerHTML='<div class="md-ai-admin-badge">✳ OPENAI-POWERED ASSISTANT</div><h3>Real conversations, grounded in your website.</h3><p>The assistant reads published website content plus the professional details you approve below. It does <strong>not</strong> automatically read your ChatGPT conversations or personal memories.</p><div class="md-ai-admin-connection" id="mdAiConnection" role="status">Checking API connection…</div><div class="md-ai-admin-steps"><strong>Connect OpenAI securely</strong><p>1. Create an API key in <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">OpenAI API keys ↗</a>.<br>2. In <strong>Vercel → Mubest Digital → Settings → Environment Variables</strong>, add the secret named <code>OPENAI_API_KEY</code> to Production (and Preview if desired).<br>3. Redeploy the site. The widget appears automatically once the key and enabled setting are both present.</p><p>ChatGPT subscriptions and OpenAI API usage are billed separately. Never paste a secret API key into this dashboard or into your public website code.</p></div><div class="md-ai-admin-test"><button id="mdAiTestButton" type="button" class="admin-button primary" disabled>✳ Test AI response</button><small>Requires an active OpenAI API account. A test uses billed API tokens.</small><pre id="mdAiTestOutput" hidden aria-live="polite"></pre></div><div class="md-ai-admin-links"><a class="admin-button ghost" href="/" target="_blank" rel="noopener noreferrer">View website ↗</a><a class="admin-button ghost" href="/start-project/" target="_blank" rel="noopener noreferrer">Project enquiries ↗</a></div>';
+      const first=panel.querySelector('.settings-section');
+      if(first)first.before(banner);else panel.append(banner);
+      fetch('/api/ai-chat',{cache:'no-store'}).then(r=>r.json()).then(status=>{
+        const el=$('#mdAiConnection',panel);if(!el)return;
+        el.classList.toggle('is-ready',Boolean(status.available));
+        el.classList.toggle('is-pending',!status.available);
+        el.textContent=status.available?'● API key detected and assistant enabled. Send a test conversation after connecting billing to verify live replies.':status.enabled===false?'○ Assistant disabled in Content Studio. Turn it on when ready.':'○ OpenAI API key not connected yet. Live AI chat remains hidden until you configure it.';
+        const test=$('#mdAiTestButton',panel),output=$('#mdAiTestOutput',panel);
+        if(!test||!output)return;
+        test.disabled=!status.available;
+        test.addEventListener('click',async()=>{
+          test.disabled=true;output.hidden=false;output.textContent='Sending a test question to your AI assistant…';
+          try{
+            const response=await fetch('/api/ai-chat',{
+              method:'POST',headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({messages:[{role:'user',content:'What can Mubest Digital help me with?'}]})
+            });
+            if(!response.ok)throw new Error((await response.json().catch(()=>({}))).error||'Test request failed.');
+            const reader=response.body?.getReader();
+            if(!reader)throw new Error('The API did not provide a streaming response.');
+            const decoder=new TextDecoder();let buffer='',result='';
+            while(true){
+              const chunk=await reader.read();if(chunk.done)break;
+              buffer+=decoder.decode(chunk.value,{stream:true});
+              const events=buffer.split(/\r?\n\r?\n/);buffer=events.pop()||'';
+              for(const event of events){
+                const type=event.split(/\r?\n/).find(line=>line.startsWith('event:'))?.slice(6).trim();
+                const raw=event.split(/\r?\n/).find(line=>line.startsWith('data:'))?.slice(5).trim();
+                if(!raw)continue;
+                let data={};try{data=JSON.parse(raw);}catch{}
+                if(type==='delta'&&typeof data.text==='string'){
+                  result+=data.text;output.textContent=result.slice(0,1700);
+                }
+                if(type==='error')throw new Error(data.message||'Provider stream error.');
+              }
+            }
+            if(!result)throw new Error('The AI returned no text. Check the model and OpenAI API billing.');
+            output.textContent='✓ AI responded successfully.\n\n'+result.slice(0,1700);
+          }catch(error){output.textContent='Connection test failed: '+(error.message||'Unknown error');}
+          finally{test.disabled=false;}
+        });
+      }).catch(()=>{const el=$('#mdAiConnection',panel);if(el)el.textContent='Could not verify the AI connection. Check the website API deployment.';});
+    }
     if(view==='portfoliodesign'){
       const first=panel.querySelector('.settings-section');
       first?.insertAdjacentHTML('beforebegin',
@@ -450,7 +513,7 @@
         e.preventDefault();const data=Object.fromEntries(new FormData(form).entries());
         $$('input[type="checkbox"]',form).forEach(el=>{data[el.name]=el.checked;});
         const submit=form.querySelector('[type="submit"]');submit.disabled=true;
-        try{await post('settings','save',{data});Object.assign(state.settings,data);applyAdminBrand(state.settings);toast('Website settings saved.');if(view==='portfoliocategories')await loadView('portfoliocategories');}
+        try{await post('settings','save',{data});Object.assign(state.settings,data);applyAdminBrand(state.settings);toast('Website settings saved.');if(view==='portfoliocategories'||view==='aiassistant')await loadView(view);}
         catch(error){toast(error.message,true);}finally{submit.disabled=false;}
       });
     });

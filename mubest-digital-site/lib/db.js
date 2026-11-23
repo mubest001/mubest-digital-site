@@ -118,6 +118,13 @@ const schema = [
   notes TEXT DEFAULT '',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 )`,
+`CREATE TABLE IF NOT EXISTS ai_chat_usage (
+  day DATE NOT NULL DEFAULT CURRENT_DATE,
+  visitor_hash TEXT NOT NULL,
+  request_count INTEGER NOT NULL DEFAULT 0,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY(day,visitor_hash)
+)`,
 `CREATE TABLE IF NOT EXISTS audit_logs (
   id BIGSERIAL PRIMARY KEY,
   user_id BIGINT REFERENCES admin_users(id) ON DELETE SET NULL,

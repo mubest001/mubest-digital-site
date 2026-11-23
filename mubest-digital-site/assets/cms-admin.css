@@ -95,3 +95,32 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .v5-lead-brief[open]{max-width:min(600px,65vw);width:350px;overflow:visible;box-shadow:0 9px 25px #17213915}
 .v5-lead-brief pre{font:500 11px/1.7 Inter,Arial,sans-serif;color:#45546b;background:#fff;border-top:1px solid #e5eaf3;padding:12px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;max-height:370px;overflow:auto}
 @media(max-width:700px){.v5-lead-brief,.v5-lead-brief[open]{max-width:230px;width:230px}}
+
+/* Mubest AI Studio: owner-approved professional knowledge and safe API setup. */
+.md-ai-admin-status{margin:0 0 25px;padding:clamp(24px,3vw,38px);border-radius:19px;background:linear-gradient(125deg,#172033,#202d45)!important;color:#fff;box-shadow:0 12px 35px #16223c24}
+.md-ai-admin-badge{display:inline-flex;align-items:center;gap:7px;padding:8px 11px;margin-bottom:15px;border:1px solid #b9e76952;border-radius:999px;background:#b9e76914;color:#d4f7a2;font-size:10px;font-weight:850;letter-spacing:.11em}
+.md-ai-admin-status h3{margin:3px 0 10px;font:700 clamp(1.4rem,2.6vw,2rem)/1.2 Manrope,sans-serif;letter-spacing:-.035em;color:#fff}
+.md-ai-admin-status>p{margin:0;max-width:750px;font-size:13px;line-height:1.75;color:#c2cedf}
+.md-ai-admin-status>p strong{color:#fff}
+.md-ai-admin-connection{display:flex;align-items:center;gap:10px;margin:20px 0 17px;padding:13px 16px;border:1px solid #ffffff24;border-radius:11px;background:#ffffff0c;color:#d4dced;font-size:12px;font-weight:750;line-height:1.5}
+.md-ai-admin-connection.is-ready{background:#b9e76916;border-color:#b9e76960;color:#d8f7bb}
+.md-ai-admin-connection.is-pending{background:#ffce8512;border-color:#ffce853e;color:#f5dfbf}
+.md-ai-admin-steps{padding:18px;background:#111b2bb3;border:1px solid #ffffff12;border-radius:13px}
+.md-ai-admin-steps>strong{display:block;margin-bottom:9px;color:#d6edff;font-size:12px;letter-spacing:.01em}
+.md-ai-admin-steps p{margin:0 0 8px;color:#b9c6da;font-size:12px;line-height:1.9}
+.md-ai-admin-steps p:last-child{margin:0;color:#e1d29b}
+.md-ai-admin-steps a{color:#b9e769!important;font-weight:800;text-decoration:underline;text-underline-offset:3px}
+.md-ai-admin-steps code{padding:3px 6px;border:1px solid #ffffff20;border-radius:5px;background:#ffffff12;color:#b9e769;font-size:12px}
+.md-ai-admin-links{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:18px}
+.md-ai-admin-links .admin-button{background:#ffffff10;color:#fff;border:1px solid #ffffff28}
+.md-ai-admin-links .admin-button:hover{background:#ffffff21}
+.md-ai-new-mark{margin-left:4px;font-size:9px;letter-spacing:.03em;border-radius:4px;padding:3px 5px;background:#b9e769;color:#273f10}
+.settings-section textarea[name="ai_assistant_public_bio"],.settings-section textarea[name="ai_assistant_approved_facts"]{min-height:160px;line-height:1.65;resize:vertical}
+@media(max-width:720px){.md-ai-admin-status{padding:22px}.md-ai-admin-steps{padding:15px}.md-ai-admin-steps p{font-size:11px;overflow-wrap:anywhere}}
+.md-ai-admin-test{display:flex;align-items:center;flex-wrap:wrap;gap:11px;margin:17px 0 0;padding:14px 15px;background:#ffffff0b;border:1px solid #ffffff20;border-radius:12px}
+.md-ai-admin-test>.admin-button{border-color:#d5ecae;background:#b9e769;color:#1b2e16}
+.md-ai-admin-test>.admin-button:hover{background:#d0f09b;color:#142611}
+.md-ai-admin-test>.admin-button:disabled{opacity:.46;cursor:not-allowed}
+.md-ai-admin-test>small{font-size:11px;line-height:1.5;color:#b5c4d8}
+.md-ai-admin-test pre{flex:0 0 100%;max-width:100%;max-height:290px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;padding:15px;background:#0b1322;color:#e8f6d3;border:1px solid #ffffff17;border-radius:10px;font:500 12px/1.7 Inter,Arial,sans-serif;margin:4px 0 0}
+.md-ai-admin-test pre[hidden]{display:none}

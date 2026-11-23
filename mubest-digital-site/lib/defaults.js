@@ -32,6 +32,12 @@ export const DEFAULT_SETTINGS = {
   portfolio_scroll_animation: "Fade up",
   portfolio_motion_speed: "Balanced",
   portfolio_service_categories: ["Website Design & Development","Shopify & Ecommerce","Email Marketing & Automation","Branding & Graphic Design","Social Media & Content","SEO & Digital Marketing","Integrations & Custom Systems"],
+  ai_assistant_enabled: false,
+  ai_assistant_name: "Mubest AI",
+  ai_assistant_welcome: "Hi! I'm Mubest AI. Ask me about the services, portfolio, or how we can help with your next project.",
+  ai_assistant_public_bio: "",
+  ai_assistant_approved_facts: "",
+
   hero_video_enabled: true,
   hero_video_url: "",
   hero_poster_url: "",
