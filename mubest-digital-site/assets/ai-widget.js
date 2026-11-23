@@ -18,7 +18,7 @@
   function readSession(){
     try{
       const state=JSON.parse(sessionStorage.getItem(STORAGE_KEY)||"[]");
-      return Array.isArray(state)?state.filter(x=>x&&["user","assistant"].includes(x.role)&&typeof x.content==="string").slice(-14).map(x=>({role:x.role,content:x.content.slice(0,2100)})):[];
+      return Array.isArray(state)?state.filter(x=>x&&["user","assistant"].includes(x.role)&&typeof x.content==="string").slice(-14).map(x=>({role:x.role,content:x.content.slice(0,3500)})):[];
     }catch{return [];}
   }
   function saveSession(){try{sessionStorage.setItem(STORAGE_KEY,JSON.stringify(history.slice(-14)));}catch{}}
@@ -170,7 +170,7 @@
         }
       }
       if(!answer.trim())throw new Error("The assistant didn't generate a reply. Please try again.");
-      history.push({role:"assistant",content:answer.slice(0,2100)});
+      history.push({role:"assistant",content:answer.slice(0,3500)});
       history=history.slice(-14);saveSession();
       if(!finished)bubble.wrap.classList.add("md-ai-incomplete");
       const copy=document.createElement("button");copy.type="button";copy.className="md-ai-copy";copy.setAttribute("aria-label","Copy assistant reply");
@@ -210,7 +210,7 @@
     $("#md-ai-close",dialog).addEventListener("click",close);
     $("#md-ai-clear",dialog).addEventListener("click",reset);
     const suggestions=$(".md-ai-suggestion-list",dialog);
-    (config.suggestions||[]).slice(0,3).forEach(label=>{
+    (config.suggestions||[]).slice(0,4).forEach(label=>{
       const button=document.createElement("button");button.type="button";button.textContent=label;
       button.addEventListener("click",()=>sendMessage(label));suggestions.append(button);
     });
