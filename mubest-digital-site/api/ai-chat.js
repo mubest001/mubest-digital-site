@@ -172,7 +172,8 @@ function sendSSE(res,type,data={}){
 async function streamAssistant(req,res,messages,settings){
   const knowledge=await buildPublicKnowledge(settings);
   await countUsage(req);
-  const model=clean(process.env.OPENAI_ASSISTANT_MODEL||"gpt-6.1-terra",90);
+  // Default to an established, cost-efficient API model; admins may override it in Vercel.
+  const model=clean(process.env.OPENAI_ASSISTANT_MODEL||"gpt-4.1-mini",90);
   const controller=new AbortController();
   const timeout=setTimeout(()=>controller.abort(),32000);
   let upstream;
@@ -185,7 +186,6 @@ async function streamAssistant(req,res,messages,settings){
       },
       body:JSON.stringify({
         model,
-        reasoning: { effort: "low" },
         instructions:systemInstructions(knowledge,settings.ai_assistant_name),
         input:messages,
         max_output_tokens:650,
@@ -227,8 +227,19 @@ async function streamAssistant(req,res,messages,settings){
           if(delta){sendSSE(res,"delta",{text:delta});chars+=delta.length;}
         }else if(event.type==="response.completed"){completed=true;}
         else if(event.type==="response.failed"||event.type==="error"){
-          console.error("Mubest AI provider stream error:",event.type);
-          sendSSE(res,"error",{message:"The assistant could not finish that reply. Please try again."});
+          // Provider errors can arrive after HTTP 200 as SSE events. Log only the
+          // diagnostic code, never prompts, API credentials, or visitor content.
+          const detail=event.error || event.response?.error || {};
+          const providerCode=clean(detail.code||detail.type||"unknown",90);
+          console.error("Mubest AI provider stream error:",event.type,providerCode);
+          let visitorMessage="The AI service could not complete that reply. Please try again.";
+          if(["insufficient_quota","billing_not_active","billing_hard_limit_reached"].includes(providerCode))
+            visitorMessage="The AI account needs an API billing update. Please use the contact form for now.";
+          else if(["model_not_found","invalid_model","unsupported_model"].includes(providerCode))
+            visitorMessage="The AI model needs an administrator update. Please use the contact form for now.";
+          else if(["rate_limit_exceeded","rate_limit"].includes(providerCode))
+            visitorMessage="The AI service is busy. Please try again shortly.";
+          sendSSE(res,"error",{message:visitorMessage});
           res.end();return;
         }
       }
