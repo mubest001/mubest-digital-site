@@ -453,7 +453,7 @@
         const el=$('#mdAiConnection',panel);if(!el)return;
         el.classList.toggle('is-ready',Boolean(status.available));
         el.classList.toggle('is-pending',!status.available);
-        el.textContent=status.available?'● Gemini API key detected and assistant enabled. Use Test Gemini response to verify the model and your free quota.':status.enabled===false?'○ Assistant disabled in Content Studio. Enable it after checking your approved public facts.':'○ GEMINI_API_KEY is missing. The public AI chat is hidden until it is connected.';
+        el.textContent=status.available?'● Gemini API key detected and assistant enabled. Use Test Gemini response to verify the model and your free quota.':!status.keyConnected?'○ GEMINI_API_KEY is missing. The public AI chat is hidden until you connect it in Vercel.':status.enabled===false?'○ Assistant disabled in Content Studio. Enable it after checking your approved public facts.':'○ Gemini is not ready. Check the Vercel key and Content Studio settings.';
         const test=$('#mdAiTestButton',panel),output=$('#mdAiTestOutput',panel);
         if(!test||!output)return;
         test.disabled=!status.available;
