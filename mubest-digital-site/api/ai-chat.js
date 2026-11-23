@@ -65,13 +65,30 @@ function shortPage(name,raw){
     content:Object.fromEntries(keys.filter(k=>typeof o[k]==="string"&&o[k].trim()).map(k=>[k,clean(o[k],950)]))
   };
 }
-async function buildPublicKnowledge(settings){
+async function buildPublicKnowledge(settings,messages=[]){
   const [pageRows,services,projects,faqs]=await Promise.all([
     query("SELECT slug,published FROM site_pages WHERE status='published' AND slug=ANY($1::text[])",[["home","about","services","portfolio","contact"]]),
     query("SELECT slug,title,summary,description,tag,deliverables FROM services WHERE status='published' ORDER BY sort_order ASC,id ASC LIMIT 18"),
     query("SELECT slug,title,category,excerpt,description,details,project_url FROM portfolio_projects WHERE status='published' ORDER BY featured DESC,sort_order ASC,id DESC LIMIT 22"),
     query("SELECT question,answer FROM faqs WHERE status='published' ORDER BY sort_order ASC LIMIT 30")
   ]);
+  // Select relevant approved records without losing the complete published
+  // source database. Unrelated projects need not consume every free request.
+  const question=messages.filter(item=>item.role==="user").slice(-2).map(item=>item.content).join(" ").toLowerCase();
+  const tokens=new Set((question.match(/[a-z]{4,}/g)||[])
+    .filter(term=>!["what","does","tell","about","with","from","that","this","have","your","which","please","mubest","digital","would","could","more"].includes(term)));
+  const relevant=(rows,fields,max)=>{
+    return rows.map((row,index)=>{
+      const searchable=fields.map(field=>String(row[field]||"").toLowerCase());
+      const score=[...tokens].reduce((sum,token)=>sum+searchable.reduce((n,text,i)=>n+(text.includes(token)?(i===0?4:1):0),0),0);
+      return {row,index,score};
+    }).sort((a,b)=>b.score-a.score||a.index-b.index).slice(0,max).map(item=>item.row);
+  };
+  const aboutServices=/services? (?:does|do|can|are)|(?:all|list|your) services|what (?:do|can) you (?:do|offer)|what does mubest/.test(question);
+  const aboutProjects=/portfolio|projects?|case stud|examples? of (?:your|the) work|show me (?:your|some) work/.test(question);
+  const serviceRows=relevant(services,["title","tag","summary","description"],aboutServices?18:9);
+  const projectRows=relevant(projects,["title","category","excerpt","description"],aboutProjects?11:5);
+  const faqRows=relevant(faqs,["question","answer"],6);
   const knowledge={
     brand:clean(settings.site_name||"Mubest Digital",100),
     operatingArea:clean(settings.location,170),
@@ -80,35 +97,35 @@ async function buildPublicKnowledge(settings){
       phone:clean(settings.phone,100),
       whatsapp:clean(settings.whatsapp,240)
     },
-    approvedProfessionalBio:clean(settings.ai_assistant_public_bio,6000),
-    additionalApprovedPublicFacts:clean(settings.ai_assistant_approved_facts,8500),
-    pages:pageRows.map(row=>shortPage(row.slug,row.published||{})),
-    services:services.map(item=>({
+    approvedProfessionalBio:clean(settings.ai_assistant_public_bio,2400),
+    additionalApprovedPublicFacts:clean(settings.ai_assistant_approved_facts,2800),
+    pages:pageRows.map(row=>{const page=shortPage(row.slug,row.published||{});page.content=Object.fromEntries(Object.entries(page.content).slice(0,7).map(([key,value])=>[key,clean(value,250)]));return page;}),
+    services:serviceRows.map(item=>({
       name:clean(item.title,160),
-      summary:clean(item.summary,450),
-      details:clean(item.description,1100),
+      summary:clean(item.summary,aboutServices?180:260),
+      details:clean(item.description,aboutServices?180:420),
       tag:clean(item.tag,120),
-      deliverables:Array.isArray(item.deliverables)?item.deliverables.slice(0,12).map(x=>clean(x,120)):[],
+      deliverables:Array.isArray(item.deliverables)?item.deliverables.slice(0,5).map(x=>clean(x,85)):[],
       link:"/services/#"+encodeURIComponent(item.slug||"")
     })),
-    projects:projects.map(item=>{
+    projects:projectRows.map(item=>{
       const d=object(item.details);
       return {
         title:clean(item.title,180),
         category:clean(item.category,150),
-        summary:clean(item.excerpt,450),
-        overview:clean(item.description,950),
-        role:clean(d.role,400),
+        summary:clean(item.excerpt,250),
+        overview:clean(item.description,360),
+        role:clean(d.role,120),
         services:Array.isArray(d.service_categories)?d.service_categories.slice(0,8).map(x=>clean(x,70)):[],
-        approach:clean(d.approach,550),
-        outcomes:clean(d.outcomes,450),
-        verifiedHighlights:clean(d.project_highlight,450),
+        approach:clean(d.approach,180),
+        outcomes:clean(d.outcomes,180),
+        verifiedHighlights:clean(d.project_highlight,150),
         publicUrl:"/portfolio/project/?slug="+encodeURIComponent(item.slug||""),
         liveUrl:/^https:\/\//.test(String(item.project_url||""))?clean(item.project_url,400):""
       };
     }),
-    frequentlyAskedQuestions:faqs.map(item=>({
-      question:clean(item.question,250),answer:clean(item.answer,850)
+    frequentlyAskedQuestions:faqRows.map(item=>({
+      question:clean(item.question,160),answer:clean(item.answer,350)
     })),
     nextSteps:{
       guidedProjectBrief:"/start-project/",
@@ -118,7 +135,7 @@ async function buildPublicKnowledge(settings){
       about:"/about/"
     }
   };
-  return JSON.stringify(knowledge).slice(0,34000);
+  return JSON.stringify(knowledge).slice(0,17000);
 }
 function systemInstructions(knowledge,assistantName){
   return [
