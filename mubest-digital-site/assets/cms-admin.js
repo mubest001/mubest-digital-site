@@ -453,7 +453,7 @@
         const el=$('#mdAiConnection',panel);if(!el)return;
         el.classList.toggle('is-ready',Boolean(status.available));
         el.classList.toggle('is-pending',!status.available);
-        el.textContent=status.available?'● API configured · The assistant is enabled and ready for visitor conversations.':status.enabled===false?'○ Assistant disabled in Content Studio. Turn it on when ready.':'○ OpenAI API key not connected yet. Live AI chat remains hidden until you configure it.';
+        el.textContent=status.available?'● API key detected and assistant enabled. Send a test conversation after connecting billing to verify live replies.':status.enabled===false?'○ Assistant disabled in Content Studio. Turn it on when ready.':'○ OpenAI API key not connected yet. Live AI chat remains hidden until you configure it.';
       }).catch(()=>{const el=$('#mdAiConnection',panel);if(el)el.textContent='Could not verify the AI connection. Check the website API deployment.';});
     }
     if(view==='portfoliodesign'){
