@@ -446,7 +446,7 @@
     if(view==='aiassistant'){
       const banner=document.createElement('section');
       banner.className='md-ai-admin-status panel-card';
-      banner.innerHTML='<div class="md-ai-admin-badge">✳ OPENAI-POWERED ASSISTANT</div><h3>Real conversations, grounded in your website.</h3><p>The assistant reads published website content plus the professional details you approve below. It does <strong>not</strong> automatically read your ChatGPT conversations or personal memories.</p><div class="md-ai-admin-connection" id="mdAiConnection" role="status">Checking API connection…</div><div class="md-ai-admin-steps"><strong>Connect OpenAI securely</strong><p>1. Create an API key in <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">OpenAI API keys ↗</a>.<br>2. In <strong>Vercel → Mubest Digital → Settings → Environment Variables</strong>, add the secret named <code>OPENAI_API_KEY</code> to Production (and Preview if desired).<br>3. Redeploy the site. The widget appears automatically once the key and enabled setting are both present.</p><p>ChatGPT subscriptions and OpenAI API usage are billed separately. Never paste a secret API key into this dashboard or into your public website code.</p></div><div class="md-ai-admin-links"><a class="admin-button ghost" href="/" target="_blank" rel="noopener noreferrer">View website ↗</a><a class="admin-button ghost" href="/start-project/" target="_blank" rel="noopener noreferrer">Project enquiries ↗</a></div>';
+      banner.innerHTML='<div class="md-ai-admin-badge">✳ OPENAI-POWERED ASSISTANT</div><h3>Real conversations, grounded in your website.</h3><p>The assistant reads published website content plus the professional details you approve below. It does <strong>not</strong> automatically read your ChatGPT conversations or personal memories.</p><div class="md-ai-admin-connection" id="mdAiConnection" role="status">Checking API connection…</div><div class="md-ai-admin-steps"><strong>Connect OpenAI securely</strong><p>1. Create an API key in <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">OpenAI API keys ↗</a>.<br>2. In <strong>Vercel → Mubest Digital → Settings → Environment Variables</strong>, add the secret named <code>OPENAI_API_KEY</code> to Production (and Preview if desired).<br>3. Redeploy the site. The widget appears automatically once the key and enabled setting are both present.</p><p>ChatGPT subscriptions and OpenAI API usage are billed separately. Never paste a secret API key into this dashboard or into your public website code.</p></div><div class="md-ai-admin-test"><button id="mdAiTestButton" type="button" class="admin-button primary" disabled>✳ Test AI response</button><small>Requires an active OpenAI API account. A test uses billed API tokens.</small><pre id="mdAiTestOutput" hidden aria-live="polite"></pre></div><div class="md-ai-admin-links"><a class="admin-button ghost" href="/" target="_blank" rel="noopener noreferrer">View website ↗</a><a class="admin-button ghost" href="/start-project/" target="_blank" rel="noopener noreferrer">Project enquiries ↗</a></div>';
       const first=panel.querySelector('.settings-section');
       if(first)first.before(banner);else panel.append(banner);
       fetch('/api/ai-chat',{cache:'no-store'}).then(r=>r.json()).then(status=>{
@@ -454,6 +454,40 @@
         el.classList.toggle('is-ready',Boolean(status.available));
         el.classList.toggle('is-pending',!status.available);
         el.textContent=status.available?'● API key detected and assistant enabled. Send a test conversation after connecting billing to verify live replies.':status.enabled===false?'○ Assistant disabled in Content Studio. Turn it on when ready.':'○ OpenAI API key not connected yet. Live AI chat remains hidden until you configure it.';
+        const test=$('#mdAiTestButton',panel),output=$('#mdAiTestOutput',panel);
+        if(!test||!output)return;
+        test.disabled=!status.available;
+        test.addEventListener('click',async()=>{
+          test.disabled=true;output.hidden=false;output.textContent='Sending a test question to your AI assistant…';
+          try{
+            const response=await fetch('/api/ai-chat',{
+              method:'POST',headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({messages:[{role:'user',content:'What can Mubest Digital help me with?'}]})
+            });
+            if(!response.ok)throw new Error((await response.json().catch(()=>({}))).error||'Test request failed.');
+            const reader=response.body?.getReader();
+            if(!reader)throw new Error('The API did not provide a streaming response.');
+            const decoder=new TextDecoder();let buffer='',result='';
+            while(true){
+              const chunk=await reader.read();if(chunk.done)break;
+              buffer+=decoder.decode(chunk.value,{stream:true});
+              const events=buffer.split(/\\r?\\n\\r?\\n/);buffer=events.pop()||'';
+              for(const event of events){
+                const type=event.split(/\\r?\\n/).find(line=>line.startsWith('event:'))?.slice(6).trim();
+                const raw=event.split(/\\r?\\n/).find(line=>line.startsWith('data:'))?.slice(5).trim();
+                if(!raw)continue;
+                let data={};try{data=JSON.parse(raw);}catch{}
+                if(type==='delta'&&typeof data.text==='string'){
+                  result+=data.text;output.textContent=result.slice(0,1700);
+                }
+                if(type==='error')throw new Error(data.message||'Provider stream error.');
+              }
+            }
+            if(!result)throw new Error('The AI returned no text. Check the model and OpenAI API billing.');
+            output.textContent='✓ AI responded successfully.\\n\\n'+result.slice(0,1700);
+          }catch(error){output.textContent='Connection test failed: '+(error.message||'Unknown error');}
+          finally{test.disabled=false;}
+        });
       }).catch(()=>{const el=$('#mdAiConnection',panel);if(el)el.textContent='Could not verify the AI connection. Check the website API deployment.';});
     }
     if(view==='portfoliodesign'){
