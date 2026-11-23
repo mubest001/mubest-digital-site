@@ -12,7 +12,7 @@ const MAX_HISTORY = 14;
 const USER_CHARS = 1800;
 const ASSISTANT_CHARS = 2100;
 const VISITOR_DAILY_LIMIT = 25;
-const GLOBAL_DAILY_LIMIT = 350;
+const GLOBAL_DAILY_LIMIT = 150;
 const OPENAI_ENDPOINT = "https://api.openai.com/v1/responses";
 const SETTINGS_KEYS = [
   "site_name","location","contact_email","whatsapp","phone",
@@ -171,7 +171,7 @@ function sendSSE(res,type,data={}){
 async function streamAssistant(req,res,messages,settings){
   const knowledge=await buildPublicKnowledge(settings);
   await countUsage(req);
-  const model=clean(process.env.OPENAI_ASSISTANT_MODEL||"gpt-5-mini",90);
+  const model=clean(process.env.OPENAI_ASSISTANT_MODEL||"gpt-6.1-terra",90);
   const controller=new AbortController();
   const timeout=setTimeout(()=>controller.abort(),32000);
   let upstream;
@@ -184,6 +184,7 @@ async function streamAssistant(req,res,messages,settings){
       },
       body:JSON.stringify({
         model,
+        reasoning: { effort: "low" },
         instructions:systemInstructions(knowledge),
         input:messages,
         max_output_tokens:650,
