@@ -301,7 +301,14 @@ export default async function handler(req,res){
     return res.status(405).json({error:"Method not allowed."});
   }
   if(req.method==="GET"&&!process.env.GEMINI_API_KEY){
-    return res.status(200).json(publicConfig(DEFAULT_SETTINGS,false));
+    // Preserve the real enabled setting in status even before the new key is added.
+    // Fail closed if a preview deployment has no database configured.
+    try {
+      await ensureSchema();
+      return res.status(200).json(publicConfig(await getSettings(),false));
+    } catch {
+      return res.status(200).json(publicConfig(DEFAULT_SETTINGS,false));
+    }
   }
   try{
     if(req.method==="POST"){
