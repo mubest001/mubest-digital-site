@@ -12,8 +12,14 @@ const MAX_HISTORY = 14;
 const USER_CHARS = 1800;
 const ASSISTANT_CHARS = 3500;
 // Conservative defaults protect a limited GroqCloud free-plan project from excess traffic.
-const VISITOR_DAILY_LIMIT = 10;
-const GLOBAL_DAILY_LIMIT = 50;
+// These site-specific limits are below GroqCloud's published default daily
+// allowance for GPT OSS 20B, and can be lowered via Vercel if needed.
+function boundedDailyLimit(raw,fallback,max){
+  const parsed=Number(raw);
+  return Number.isInteger(parsed)&&parsed>=1?Math.min(parsed,max):fallback;
+}
+const VISITOR_DAILY_LIMIT = boundedDailyLimit(process.env.AI_VISITOR_DAILY_LIMIT,25,100);
+const GLOBAL_DAILY_LIMIT = boundedDailyLimit(process.env.AI_GLOBAL_DAILY_LIMIT,150,500);
 const GROQ_ENDPOINT="https://api.groq.com/openai/v1/chat/completions";
 const DEFAULT_GROQ_MODEL="openai/gpt-oss-20b";
 function groqModel(){
@@ -180,16 +186,47 @@ function checkOrigin(req){
     throw Object.assign(new Error("This chat endpoint is only available through the Mubest Digital website."),{status:403});
   }
 }
+// Reserve both quota counters before contacting Groq. On failure, release
+// the reservations so connection errors and unsuccessful replies do not
+// consume the visitor's website quota. PostgreSQL atomically enforces caps.
+async function releaseUsage(reservations){
+  if(!reservations?.length)return;
+  await Promise.all(reservations.map(async ({key,day})=>{
+    await query(
+      "UPDATE ai_chat_usage SET request_count=GREATEST(0,request_count-1),updated_at=NOW() WHERE day=$1::date AND visitor_hash=$2 AND request_count>0",
+      [day,key]
+    );
+  }));
+}
+async function refundUsage(reservations){
+  try{await releaseUsage(reservations);}
+  catch(error){console.error("Mubest AI quota refund error:",error?.name||"Error");}
+}
 async function countUsage(req){
-  const ip=String(req.headers["x-real-ip"]||req.headers["x-forwarded-for"]||"unknown").split(",")[0].trim().slice(0,140);
+  // Prefer Vercel's forwarded client address; do not log or persist raw IPs.
+  const ip=String(req.headers["x-vercel-forwarded-for"]||req.headers["x-real-ip"]||req.headers["x-forwarded-for"]||"unknown").split(",")[0].trim().slice(0,140);
   const fingerprint=createHmac("sha256",process.env.GROQ_API_KEY).update(ip).digest("hex").slice(0,48);
   const keys=[["v:"+fingerprint,VISITOR_DAILY_LIMIT],["global",GLOBAL_DAILY_LIMIT]];
-  for(const [key,max] of keys){
-    const result=await query(
-      "INSERT INTO ai_chat_usage (day,visitor_hash,request_count) VALUES (CURRENT_DATE,$1,1) ON CONFLICT (day,visitor_hash) DO UPDATE SET request_count=ai_chat_usage.request_count+1,updated_at=NOW() WHERE ai_chat_usage.request_count<$2 RETURNING request_count",
-      [key,max]
-    );
-    if(!result.length)throw Object.assign(new Error("The assistant has reached its daily usage limit. Please use the contact form to reach Mubest Digital."),{status:429});
+  const reserved=[];
+  try{
+    for(const [key,max] of keys){
+      const result=await query(
+        "INSERT INTO ai_chat_usage (day,visitor_hash,request_count) VALUES (CURRENT_DATE,$1,1) ON CONFLICT (day,visitor_hash) DO UPDATE SET request_count=ai_chat_usage.request_count+1,updated_at=NOW() WHERE ai_chat_usage.request_count<$2 RETURNING day::text AS day",
+        [key,max]
+      );
+      if(!result.length){
+        const message=key==="global"
+          ?"Mubest AI has reached its website-wide daily allowance. Please try again after the daily reset or contact Mubest Digital."
+          :"You've reached your daily Mubest AI question allowance. Please try again after the daily reset or contact Mubest Digital.";
+        throw Object.assign(new Error(message),{status:429});
+      }
+      reserved.push({key,day:result[0].day});
+    }
+    return reserved;
+  }catch(error){
+    // If the site-wide cap rejects a visitor, refund any visitor reservation.
+    await refundUsage(reserved);
+    throw error;
   }
 }
 function sendSSE(res,type,data={}){
@@ -220,11 +257,11 @@ async function streamAssistant(req,res,messages,settings){
   // Narrow approved public facts to the current question so a useful answer
   // fits the free plan's per-minute token allowance.
   const knowledge=await buildPublicKnowledge(settings,messages);
-  await countUsage(req);
+  const reservations=await countUsage(req);
   const model=groqModel();
   const controller=new AbortController();
   const timeout=setTimeout(()=>controller.abort(),32000);
-  let chars=0,done=false,errorSent=false,completionReason="";
+  let chars=0,done=false,errorSent=false,completionReason="",delivered=false;
   try{
     const payload={
       model,
@@ -303,7 +340,10 @@ async function streamAssistant(req,res,messages,settings){
     if(!stop&&!done&&buffer.trim())block(buffer);
     if(!errorSent){
       if(!chars)sendSSE(res,"error",{message:"GroqCloud returned no readable response. Please try again."});
-      else sendSSE(res,"done",{complete:done||completionReason==="stop"||chars>=4500});
+      else {
+        delivered=true;
+        sendSSE(res,"done",{complete:done||completionReason==="stop"||chars>=4500});
+      }
     }
     res.end();
   }catch(error){
@@ -311,7 +351,10 @@ async function streamAssistant(req,res,messages,settings){
       sendSSE(res,"error",{message:error.name==="AbortError"?"GroqCloud took too long. Please try again.":error.publicMessage?error.message:"The AI connection was interrupted. Please try again."});
       res.end();
     }else throw error;
-  }finally{clearTimeout(timeout);}
+  }finally{
+    clearTimeout(timeout);
+    if(!delivered)await refundUsage(reservations);
+  }
 }
 export default async function handler(req,res){
   res.setHeader("Cache-Control","no-store, max-age=0");
