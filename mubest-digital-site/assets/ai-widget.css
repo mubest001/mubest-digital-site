@@ -5,20 +5,37 @@
 .md-ai-launcher *,.md-ai-panel *{box-sizing:border-box}
 .md-ai-launcher{
   position:fixed!important;z-index:2100;right:clamp(14px,3vw,29px);bottom:clamp(80px,7vw,105px);
-  min-height:55px;max-width:calc(100vw - 28px);
-  display:inline-flex;align-items:center;justify-content:center;gap:12px;
-  padding:8px 17px 8px 9px;background:#171d2c;color:#fff;
+  width:56px;min-width:56px;min-height:56px;max-width:calc(100vw - 28px);
+  display:inline-flex;align-items:center;justify-content:flex-start;gap:0;overflow:hidden;
+  padding:8px;background:#171d2c;color:#fff;
   border:1px solid #ffffff25;border-radius:999px;
   box-shadow:0 14px 36px rgba(9,16,34,.32),inset 0 0 0 1px #ffffff0a;
-  cursor:pointer;transition:transform .2s,box-shadow .2s,background .2s;
+  cursor:pointer;transition:width .28s ease,transform .2s,box-shadow .2s,background .2s;
   font:750 .78rem/1.25 Inter,Arial,sans-serif;
 }
 .md-ai-launcher:hover{transform:translateY(-3px);background:#24304a;box-shadow:0 20px 45px rgba(9,16,34,.37)}
 .md-ai-launcher:focus-visible,.md-ai-panel button:focus-visible,.md-ai-panel a:focus-visible,.md-ai-panel textarea:focus-visible{outline:3px solid #9fd8fc;outline-offset:3px}
 .md-ai-launcher-icon{display:grid;place-items:center;width:38px;height:38px;flex:0 0 38px;border-radius:50%;background:var(--md-ai-lime);color:#233013}
 .md-ai-launcher-icon svg{width:22px;height:22px}
-.md-ai-launcher-text{white-space:nowrap;letter-spacing:.01em}
-.md-ai-online-pip{width:7px;height:7px;border-radius:50%;background:#b9e769;box-shadow:0 0 0 3px #b9e76922}
+.md-ai-launcher-text{
+  display:block;min-width:0;max-width:0;margin-left:0;opacity:0;visibility:hidden;overflow:hidden;
+  white-space:nowrap;letter-spacing:.01em;
+  transition:max-width .28s ease,margin-left .28s ease,opacity .18s ease,visibility .2s;
+}
+.md-ai-online-pip{
+  position:absolute;right:5px;bottom:5px;width:8px;height:8px;flex:none;
+  border:2px solid #171d2c;border-radius:50%;background:#b9e769;
+  box-shadow:0 0 0 2px #b9e76924;transition:opacity .18s;
+}
+/* Only a pointer hover or accessible keyboard focus reveals the complete name. */
+@media(hover:hover){
+  .md-ai-launcher:hover{width:min(320px,calc(100vw - 28px));padding:8px 15px 8px 8px}
+  .md-ai-launcher:hover .md-ai-launcher-text{max-width:255px;margin-left:11px;opacity:1;visibility:visible}
+  .md-ai-launcher:hover .md-ai-online-pip{opacity:0}
+}
+.md-ai-launcher:focus-visible{width:min(320px,calc(100vw - 28px));padding:8px 15px 8px 8px}
+.md-ai-launcher:focus-visible .md-ai-launcher-text{max-width:255px;margin-left:11px;opacity:1;visibility:visible}
+.md-ai-launcher:focus-visible .md-ai-online-pip{opacity:0}
 .md-ai-launcher[aria-expanded="true"]{opacity:0;pointer-events:none;transform:translateY(10px)}
 .md-ai-panel{
   position:fixed!important;z-index:2110;right:clamp(13px,2.8vw,30px);bottom:clamp(18px,3vw,31px);
@@ -64,6 +81,12 @@
 .md-ai-text{overflow-wrap:anywhere;font-size:.83rem;line-height:1.68;white-space:normal}
 .md-ai-text p{margin:0}
 .md-ai-text p+p{margin-top:10px}
+.md-ai-clean-list{display:grid;gap:8px;margin:7px 0 10px}
+.md-ai-clean-line{
+  display:block;min-width:0;line-height:1.65;overflow-wrap:anywhere;
+  padding:5px 0 5px 11px;border-left:2px solid #8bb1ec;
+}
+.md-ai-text p+.md-ai-clean-list,.md-ai-clean-list+p{margin-top:10px}
 .md-ai-text a{color:#3b59d0;text-decoration:underline;text-underline-offset:3px;font-weight:750}
 .md-ai-text a:hover{color:#243cb6}
 .md-ai-assistant{align-self:flex-start}
@@ -107,7 +130,8 @@
 .md-ai-composer>p a{color:#3d59c5;font-weight:750;text-decoration:underline;text-underline-offset:2px}
 @media(max-width:680px){
   .md-ai-open:before{content:"";position:fixed;inset:0;background:#091021a8;z-index:2103;pointer-events:none}
-  .md-ai-launcher{right:14px;bottom:85px;padding:8px 12px 8px 8px;min-height:53px}
+  .md-ai-launcher{right:14px;bottom:85px;width:54px;min-width:54px;padding:8px;min-height:54px}
+  .md-ai-launcher:focus-visible{width:min(320px,calc(100vw - 28px))}
   .md-ai-launcher-icon{width:36px;height:36px;flex-basis:36px}
   .md-ai-panel{
     inset:auto 0 0 0!important;
