@@ -184,7 +184,19 @@ async function seed() {
 export async function ensureSchema() {
   if (!schemaPromise) {
     schemaPromise = (async () => {
-      for (const statement of schema) await query(statement);
+      for (const statement of schema) {
+        // Concurrent cold starts can try to create the same PostgreSQL type at once.
+        // IF NOT EXISTS is not fully concurrency-safe at pg_type catalog level.
+        for (let attempt = 0; ; attempt++) {
+          try { await query(statement); break; }
+          catch (error) {
+            const concurrentCreate = error?.code === "23505" &&
+              String(error?.message || "").includes("pg_type_typname_nsp_index");
+            if (!concurrentCreate || attempt >= 4) throw error;
+            await new Promise(resolve => setTimeout(resolve, 80 * (attempt + 1)));
+          }
+        }
+      }
       await seed();
     })().catch((error) => {
       schemaPromise = null;
