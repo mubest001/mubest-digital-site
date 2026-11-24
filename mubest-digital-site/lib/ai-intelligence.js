@@ -38,7 +38,7 @@ export function recommendPublishedContent(messages,services=[],projects=[],setti
   const words=[...new Set(tokens(conversation))];
   const userGroups=groupsFor(intent);
   const asksServices=/\b(services|what do you (do|offer)|what can you (do|offer)|help with)\b/.test(latest);
-  const asksPortfolio=/\b(portfolio|examples|case stud|previous projects|past projects|work samples|show me (your |some )?work|projects have you)\b/.test(latest);
+  const asksPortfolio=/\b(portfolio|examples|case stud(?:y|ies)|previous projects|past projects|work samples|show me (your |some )?work|projects have you)\b/.test(latest);
   const discussesProject=/\b(i (need|want|am|would|have|run)|we (need|want|are|have)|my (business|brand|store|website|company)|our (business|brand|website)|looking for|planning to|help me|create|build|redesign|set up|launch|improve)\b/.test(intent);
   const ranks=(rows,fields)=>rows.map((row,index)=>({row,index,...relevant(row,words,userGroups,fields)}))
     .sort((a,b)=>b.score-a.score||a.index-b.index);
