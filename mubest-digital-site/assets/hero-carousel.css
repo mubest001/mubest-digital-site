@@ -47,19 +47,30 @@
 .hero-carousel .hero-slide--centered {background:linear-gradient(110deg,#10151d,#273d62);}
 @media(max-width:1050px){.hero-carousel .hero-split-grid {grid-template-columns:1fr .65fr;gap:24px}.hero-carousel .hero-spotlight{padding:12px}.hero-carousel .hero-slide--split .hero-heading{font-size:clamp(3rem,6.5vw,5.5rem)}}
 @media(max-width:760px){
- .hero.hero-carousel{height:100svh;min-height:690px;}
- .hero-carousel .hero-slide .hero-content{width:calc(100% - 38px);padding:95px 0 130px;margin:12px auto 0;}
+ .hero.hero-carousel{height:clamp(560px,75svh,680px);min-height:560px;}
+ .hero-carousel .hero-slide .hero-content{width:calc(100% - 38px);padding:18px 0 82px;margin:0 auto;}
  .hero-carousel .hero-slide .hero-heading{font-size:clamp(2.65rem,11.8vw,5rem);line-height:.98;}
  .hero-carousel .hero-slide--editorial h1{font-size:clamp(3rem,12vw,5.4rem);}
  .hero-carousel .hero-split-grid {display:block;}
  .hero-carousel .hero-spotlight{display:none;}
- .hero-carousel .hero-slide .hero-copy{font-size:.94rem;line-height:1.55;margin:22px 0 25px;}
- .hero-carousel .hero-slide .hero-kicker{font-size:.65rem;margin-bottom:20px;}
- .hero-carousel .hero-carousel-footer{width:calc(100% - 38px);min-height:90px;}
+ .hero-carousel .hero-slide .hero-copy{font-size:.94rem;line-height:1.55;margin:16px 0 20px;}
+ .hero-carousel .hero-slide .hero-kicker{font-size:.65rem;margin-bottom:14px;}
+ .hero-carousel .hero-carousel-footer{width:calc(100% - 38px);min-height:72px;}
  .hero-carousel .hero-carousel-caption{display:none;}
  .hero-carousel .hero-carousel-controls{width:100%;justify-content:space-between;gap:8px;}
  .hero-carousel .hero-carousel-arrow{width:40px;height:40px;}
  .hero-carousel .hero-carousel-indicators button{width:34px;}
 }
-@media(max-width:420px){.hero-carousel .hero-slide .hero-content{padding-top:105px}.hero-carousel .hero-slide--editorial h1{font-size:clamp(2.7rem,11.5vw,4.6rem)}.hero-carousel .hero-slide .hero-heading{font-size:clamp(2.5rem,10.6vw,4.4rem)}.hero-carousel .hero-actions .button {min-height:45px;font-size:.74rem;padding:0 14px}}
+@media(max-width:420px){
+ .hero-carousel .hero-slide .hero-content{padding-top:12px;padding-bottom:80px;}
+ .hero-carousel .hero-slide--editorial h1{font-size:clamp(2.4rem,10.6vw,3.8rem);line-height:1.02;}
+ .hero-carousel .hero-slide .hero-heading{font-size:clamp(2.3rem,10.2vw,3.5rem);line-height:1.02;}
+ .hero-carousel .hero-actions .button{min-height:43px;font-size:.73rem;padding:0 12px;}
+ .hero-carousel .hero-carousel-footer{min-height:68px;}
+}
+/* Compact mobile slide controls without compromising legibility on short phones. */
+@media(max-width:760px) and (max-height:640px){
+ .hero.hero-carousel{height:560px;min-height:560px;}
+ .hero-carousel .hero-slide .hero-content{padding-top:8px;padding-bottom:75px;}
+}
 @media(prefers-reduced-motion:reduce){.hero-carousel .hero-slide{transition:none;transform:none}.hero-carousel .hero-carousel-indicators .is-active .hero-dot-progress{animation:none;width:100%}}
