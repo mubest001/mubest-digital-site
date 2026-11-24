@@ -83,8 +83,8 @@ function shortPage(name,raw){
 async function buildPublicKnowledge(settings,messages=[]){
   const [pageRows,services,projects,faqs]=await Promise.all([
     query("SELECT slug,published FROM site_pages WHERE status='published' AND slug=ANY($1::text[])",[["home","about","services","portfolio","contact"]]),
-    query("SELECT slug,title,summary,description,tag,deliverables FROM services WHERE status='published' ORDER BY sort_order ASC,id ASC LIMIT 18"),
-    query("SELECT slug,title,category,excerpt,description,details,project_url FROM portfolio_projects WHERE status='published' ORDER BY featured DESC,sort_order ASC,id DESC LIMIT 22"),
+    query("SELECT slug,title,summary,description,tag,deliverables FROM services WHERE status='published' ORDER BY sort_order ASC,id ASC LIMIT 50"),
+    query("SELECT slug,title,category,excerpt,description,details,project_url FROM portfolio_projects WHERE status='published' ORDER BY featured DESC,sort_order ASC,id DESC LIMIT 80"),
     query("SELECT question,answer FROM faqs WHERE status='published' ORDER BY sort_order ASC LIMIT 30")
   ]);
   // Select relevant approved records without losing the complete published
