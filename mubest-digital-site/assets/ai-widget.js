@@ -358,7 +358,7 @@
     }
   }
   function buildWidget(){
-    const style=document.createElement("link");style.rel="stylesheet";style.href="/assets/ai-widget.css?v=logo2";style.dataset.mubestAiStyle="";document.head.append(style);
+    const style=document.createElement("link");style.rel="stylesheet";style.href="/assets/ai-widget.css?v=intelligence-v2";style.dataset.mubestAiStyle="";document.head.append(style);
     history=readSession();lastInsights=readLastInsights();
     launcher=document.createElement("button");launcher.type="button";launcher.id="md-ai-launcher";launcher.className="md-ai-launcher";
     launcher.setAttribute("aria-haspopup","dialog");launcher.setAttribute("aria-controls","md-ai-panel");launcher.setAttribute("aria-expanded","false");
