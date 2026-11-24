@@ -54,8 +54,22 @@ export function recommendPublishedContent(messages,services=[],projects=[],setti
   const recommendProjects=active&&settings.ai_v2_portfolio_recommendations!==false&&
     (asksPortfolio||(discussesProject&&userGroups.length>0));
   const selectedServices=recommendServices?svc.filter(x=>x.score>=5).slice(0,3):[];
-  const eligibleProjects=recommendProjects?prj.filter(x=>x.score>=5).slice(0,2):[];
-  const chosenProjects=eligibleProjects.length?eligibleProjects:asksPortfolio?prj.slice(0,2):[];
+  // A project can mention a platform incidentally: email templates for a
+  // Shopify brand are NOT evidence of a completed Shopify storefront build.
+  // Match the project's primary published title/category/service tags first.
+  const asksStoreBuild=/\b(storefront|online store|shopify store|ecommerce website|website build|build (?:a |an |my |our )?(?:store|shop|website)|product page|checkout)\b/.test(intent);
+  const eligibleProjects=recommendProjects?prj.filter(x=>{
+    if(x.score<5)return false;
+    const primary=String(x.row.title||"")+" "+String(x.row.category||"")+" "+String(x.row.serviceTags||"");
+    const primaryGroups=groupsFor(primary);
+    if(userGroups.length&&!userGroups.some(group=>primaryGroups.includes(group)))return false;
+    if(asksStoreBuild&&/\b(email|klaviyo|newsletter|campaign|email template)\b/i.test(x.row.title||"")
+      &&!/\b(storefront|store design|store build|website|checkout)\b/i.test(x.row.title||""))return false;
+    return true;
+  }).slice(0,2):[];
+  // For a generic portfolio request, show real published samples, clearly
+  // labelled as selected work, not as an exact match.
+  const chosenProjects=eligibleProjects.length?eligibleProjects:(asksPortfolio&&!userGroups.length)?prj.slice(0,2):[];
   const matchedProjects=eligibleProjects.length>0;
   const output={
     services:selectedServices.filter(x=>slug(x.row.slug)).map(x=>({
