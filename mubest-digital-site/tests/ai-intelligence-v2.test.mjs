@@ -57,3 +57,25 @@ test('a general greeting does not trigger sales recommendations',()=>{
   assert.equal(result.projects.length,0);
   assert.equal(result.services.length,0);
 });
+
+test('an email template project does not count as a completed website redesign',()=>{
+  const emailOnly=[{
+    slug:'klaviyo-health-shopify',
+    title:'Klaviyo Email Template Design for Health & Wellness Shopify Brand',
+    category:'Health & Wellness / Shopify / Klaviyo',
+    excerpt:'Mobile-friendly email templates for a Shopify health brand.',
+    description:'Customer retention emails, no storefront design.',
+    details:{service_categories:['Email Marketing & Automation']}
+  }];
+  const website=recommendPublishedContent(chat('I need a premium website design'),services,emailOnly,{});
+  assert.equal(website.projects.length,0);
+  const store=recommendPublishedContent(chat('I want to build a Shopify store'),services,emailOnly,{});
+  assert.equal(store.projects.length,0);
+  const email=recommendPublishedContent(chat('I need Klaviyo email templates for a Shopify brand'),services,emailOnly,{});
+  assert.equal(email.projects.length,1);
+});
+test('a specific portfolio topic does not fall back to unrelated projects',()=>{
+  const onlyEmail=[{slug:'email-only',title:'Klaviyo Welcome Emails',category:'Email marketing',excerpt:'Automated email campaigns'}];
+  const result=recommendPublishedContent(chat('Show me website design case studies'),services,onlyEmail,{});
+  assert.equal(result.projects.length,0);
+});
