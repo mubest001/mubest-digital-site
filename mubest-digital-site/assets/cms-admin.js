@@ -11,8 +11,8 @@
   const safeUrl=value=>{const v=String(value||'').trim();return /^https?:\/\//i.test(v)||(/^\/(?!\/)/.test(v))?v:'';};
   const toast=(message,error=false)=>{const el=$('#toast');if(!el)return;el.textContent=message;el.className='toast show'+(error?' error':'');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.className='toast',4000);};
   const state={view:'overview',data:{},page:'home',pageRows:[],filter:'all',search:'',media:[],editorResource:null,editorItem:null,mediaTarget:null,settings:{}};
-  const titles={overview:'Overview',leads:'Enquiries',pages:'Pages',portfolio:'Portfolio',services:'Services',testimonials:'Testimonials',faqs:'FAQs',media:'Media library',branding:'Brand identity',homepage:'Homepage & hero',navigation:'Header & footer',seo:'SEO & sharing',contactsettings:'Contact & social',activity:'Activity & revisions',layout:'Visual layout builder',portfoliodesign:'Portfolio appearance',portfoliocategories:'Portfolio categories',aiassistant:'AI assistant'};
-  const settingsViews=['branding','homepage','navigation','seo','contactsettings','layout','portfoliodesign','portfoliocategories','aiassistant'];
+  const titles={aiintelligence:'AI Intelligence Centre',overview:'Overview',leads:'Enquiries',pages:'Pages',portfolio:'Portfolio',services:'Services',testimonials:'Testimonials',faqs:'FAQs',media:'Media library',branding:'Brand identity',homepage:'Homepage & hero',navigation:'Header & footer',seo:'SEO & sharing',contactsettings:'Contact & social',activity:'Activity & revisions',layout:'Visual layout builder',portfoliodesign:'Portfolio appearance',portfoliocategories:'Portfolio categories',aiassistant:'AI assistant'};
+  const settingsViews=['branding','homepage','navigation','seo','contactsettings','layout','portfoliodesign','portfoliocategories','aiassistant','aiintelligence'];
   const pageUrl={home:'/',about:'/about/',services:'/services/',portfolio:'/portfolio/',contact:'/contact/'};
 
   const pageGroups={
@@ -48,6 +48,25 @@
 
   // These keys are persisted to Neon site_settings, then read by public-content.
   const settingGroups={
+    aiintelligence:{
+      intro:'Control how Mubest AI understands visitor projects, recommends real published work, and prepares review-first project enquiries.',
+      groups:[
+        {title:'V2 intelligence & verified recommendations',description:'The assistant keeps its current GroqCloud chat design and uses only published services, published portfolio entries, approved biography and FAQs.',fields:[
+          ['ai_v2_enabled','Enable AI Intelligence V2','checkbox'],
+          ['ai_v2_service_recommendations','Suggest relevant published services','checkbox'],
+          ['ai_v2_portfolio_recommendations','Show grounded published portfolio cards','checkbox']
+        ]},
+        {title:'Conversation & qualification',description:'Make the assistant ask one useful question at a time, without collecting contact details in chat or inventing pricing.',fields:[
+          ['ai_v2_qualification_enabled','Ask contextual project questions','checkbox'],
+          ['ai_v2_tone','Assistant tone','select',['Consultative','Concise','Friendly']],
+          ['ai_v2_qualification_focus','Approved conversation and qualification guidance','textarea']
+        ]},
+        {title:'Review-first project handover',description:'A visitor chooses to prepare a draft, edits the fields, then decides whether to submit your existing protected enquiry form.',fields:[
+          ['ai_v2_handover_enabled','Enable visitor-controlled project brief handover','checkbox'],
+          ['ai_v2_handover_intro','Introduction in project brief review','textarea']
+        ]}
+      ]
+    },
     aiassistant:{
       intro:'Give visitors natural conversations about Mubest Digital using approved public website knowledge and GroqCloud free API.',
       groups:[
@@ -426,7 +445,11 @@
   }
 
   function renderSettings(panel,settings,view){
-    settings={portfolio_columns_desktop:'3',portfolio_home_columns:'3',portfolio_columns_tablet:'2',portfolio_columns_mobile:'1',portfolio_gap:'18',portfolio_hover_animation:'Lift',portfolio_scroll_animation:'Fade up',portfolio_motion_speed:'Balanced',...settings};
+    settings={portfolio_columns_desktop:'3',portfolio_home_columns:'3',portfolio_columns_tablet:'2',portfolio_columns_mobile:'1',portfolio_gap:'18',portfolio_hover_animation:'Lift',portfolio_scroll_animation:'Fade up',portfolio_motion_speed:'Balanced',
+      ai_v2_enabled:true,ai_v2_service_recommendations:true,ai_v2_portfolio_recommendations:true,
+      ai_v2_qualification_enabled:true,ai_v2_handover_enabled:true,
+      ai_v2_tone:'Consultative',ai_v2_qualification_focus:'Ask one useful question at a time. Understand the goal, current setup, preferred timeline and approximate budget when relevant.',
+      ai_v2_handover_intro:'Review your project notes before continuing to the enquiry form.',...settings};
     const config=settingGroups[view];
     panel.innerHTML=heading(titles[view],config.intro,`<a class="admin-button ghost" href="/" target="_blank" rel="noopener noreferrer">${icon('eye')} Open website</a>`)+
       `<div class="settings-intro"><strong>You're in control of the details.</strong><p>Changes are saved to the existing Neon database. Each card saves independently, so you can update only what you need.</p></div>`+
@@ -443,6 +466,43 @@
           return `<label>${esc(label)}<input name="${esc(key)}" type="${type==='email'?'email':'text'}" value="${esc(raw)}"></label>`;
         }).join('')+
         `<div class="form-footer"><small>Only fields in this card are saved.</small><button type="submit" class="admin-button primary">${icon('check')} Save ${esc(g.title.toLowerCase())}</button></div></form></div>`).join('');
+    if(view==='aiintelligence'){
+      const section=document.createElement('section');
+      section.className='md-v2-intelligence-preview panel-card';
+      section.innerHTML='<div class="md-v2-intro"><span>LIVE KNOWLEDGE SOURCES</span><h3>Check what Mubest AI can recommend.</h3><p>This preview uses only your published services and projects, without spending Groq tokens. The live assistant applies contextual matching and the controls below.</p></div>'+
+        '<div class="md-v2-stats" id="mdV2KnowledgeStats" role="status">Loading published knowledge…</div>'+
+        '<label class="md-v2-search">Test a visitor topic<input id="mdV2KnowledgeQuery" type="search" maxlength="100" placeholder="Try Shopify, Klaviyo, website, branding..." aria-label="Test a visitor topic"></label>'+
+        '<div id="mdV2KnowledgeResults" class="md-v2-results" aria-live="polite"></div>'+
+        '<p class="md-v2-privacy">These are published website records, not private chat history. Conversation drafts stay in the visitor browser and never become a lead without submission.</p>';
+      const first=panel.querySelector('.settings-section');
+      if(first)first.before(section);else panel.append(section);
+      fetch('/api/public-content',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('Could not read published website content');return r.json();}).then(data=>{
+        const services=Array.isArray(data.services)?data.services:[],projects=Array.isArray(data.portfolio)?data.portfolio:[];
+        $('#mdV2KnowledgeStats',section).textContent=services.length+' published services · '+projects.length+' published portfolio projects';
+        const results=$('#mdV2KnowledgeResults',section),input=$('#mdV2KnowledgeQuery',section);
+        const preview=()=>{
+          const words=(input.value.toLowerCase().match(/[a-z0-9]{3,}/g)||[]).slice(0,6);
+          results.replaceChildren();
+          if(!words.length){results.textContent='Enter a topic to inspect matching published service and portfolio titles.';return;}
+          const score=item=>words.reduce((n,w)=>n+(String(item.title||'').toLowerCase().includes(w)?5:0)+(String(item.summary||item.excerpt||'').toLowerCase().includes(w)?2:0)+(String(item.category||item.tag||'').toLowerCase().includes(w)?2:0),0);
+          const datasets=[['Published services',services,'/services/#'],['Published portfolio',projects,'/portfolio/project/?slug=']];
+          for(const [label,items,base] of datasets){
+            const ranked=items.map(item=>({item,score:score(item)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,4);
+            const group=document.createElement('div');group.className='md-v2-source-group';
+            const title=document.createElement('strong');title.textContent=label;group.append(title);
+            if(!ranked.length){const empty=document.createElement('span');empty.textContent='No direct text matches';group.append(empty);}
+            ranked.forEach(({item})=>{
+              const a=document.createElement('a');
+              const slug=String(item.slug||'').replace(/[^a-zA-Z0-9_-]/g,'');
+              a.href=base+encodeURIComponent(slug);a.target='_blank';a.rel='noopener noreferrer';
+              a.textContent=String(item.title||'Published record').slice(0,115)+' ↗';group.append(a);
+            });
+            results.append(group);
+          }
+        };
+        input.addEventListener('input',preview);preview();
+      }).catch(error=>{const el=$('#mdV2KnowledgeStats',section);if(el)el.textContent=error.message||'Could not load published content';});
+    }
     if(view==='aiassistant'){
       const banner=document.createElement('section');
       banner.className='md-ai-admin-status panel-card';
@@ -513,7 +573,7 @@
         e.preventDefault();const data=Object.fromEntries(new FormData(form).entries());
         $$('input[type="checkbox"]',form).forEach(el=>{data[el.name]=el.checked;});
         const submit=form.querySelector('[type="submit"]');submit.disabled=true;
-        try{await post('settings','save',{data});Object.assign(state.settings,data);applyAdminBrand(state.settings);toast('Website settings saved.');if(view==='portfoliocategories'||view==='aiassistant')await loadView(view);}
+        try{await post('settings','save',{data});Object.assign(state.settings,data);applyAdminBrand(state.settings);toast('Website settings saved.');if(view==='portfoliocategories'||view==='aiassistant'||view==='aiintelligence')await loadView(view);}
         catch(error){toast(error.message,true);}finally{submit.disabled=false;}
       });
     });

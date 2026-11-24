@@ -124,3 +124,20 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .md-ai-admin-test>small{font-size:11px;line-height:1.5;color:#b5c4d8}
 .md-ai-admin-test pre{flex:0 0 100%;max-width:100%;max-height:290px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;padding:15px;background:#0b1322;color:#e8f6d3;border:1px solid #ffffff17;border-radius:10px;font:500 12px/1.7 Inter,Arial,sans-serif;margin:4px 0 0}
 .md-ai-admin-test pre[hidden]{display:none}
+
+/* AI Intelligence V2 editor: scoped styles, consistent with existing Content Studio. */
+.md-v2-intelligence-preview{display:grid;gap:16px;padding:24px;margin-bottom:19px;background:linear-gradient(130deg,#fbfcff,#f0f5ff)}
+.md-v2-intro>span{font-size:10px;font-weight:900;letter-spacing:.16em;color:#4b64cf}
+.md-v2-intro h3{font:800 clamp(19px,3vw,25px)/1.25 Manrope,Arial,sans-serif;color:#1d2b41;margin:9px 0}
+.md-v2-intro p{font-size:12px;line-height:1.8;color:#66748c;max-width:680px;margin:0}
+.md-v2-stats{font-size:12px;font-weight:800;color:#1c4962;padding:13px 16px;border-radius:11px;background:#e3f0f5;border:1px solid #cde3ed}
+.md-v2-search{display:grid;gap:8px;font-size:12px;font-weight:800;color:#354968}
+.md-v2-search input{min-width:0;width:100%;padding:13px 15px;border:1px solid #d5dfea;border-radius:11px;background:white;color:#293b51;font:500 13px/1.5 Inter,Arial,sans-serif}
+.md-v2-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.md-v2-source-group{display:grid;align-content:start;gap:8px;min-height:90px;padding:14px;border:1px solid #e3e9f2;border-radius:12px;background:white}
+.md-v2-source-group strong{font-size:12px;color:#2b3e55}
+.md-v2-source-group span{font-size:12px;color:#8b98a9}
+.md-v2-source-group a{color:#3b59c9;text-decoration:none;overflow-wrap:anywhere;font-size:12px;font-weight:700;line-height:1.5}
+.md-v2-source-group a:hover{text-decoration:underline}
+.md-v2-privacy{margin:0;color:#72819a;font-size:11px;line-height:1.7}
+@media(max-width:630px){.md-v2-intelligence-preview{padding:16px}.md-v2-results{grid-template-columns:1fr}}

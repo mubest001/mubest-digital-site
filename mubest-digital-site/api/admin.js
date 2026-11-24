@@ -242,7 +242,8 @@ async function saveSettings(data, admin) {
     "announcement_enabled","announcement_text","announcement_link_label","announcement_url",
     "footer_tagline","footer_note","footer_cta_label","layout_sections","portfolio_service_categories",
     "portfolio_columns_desktop","portfolio_home_columns","portfolio_columns_tablet","portfolio_columns_mobile",
-    "portfolio_gap","portfolio_hover_animation","portfolio_scroll_animation","portfolio_motion_speed", "ai_assistant_enabled","ai_assistant_name","ai_assistant_welcome","ai_assistant_public_bio","ai_assistant_approved_facts"
+    "portfolio_gap","portfolio_hover_animation","portfolio_scroll_animation","portfolio_motion_speed", "ai_assistant_enabled","ai_assistant_name","ai_assistant_welcome","ai_assistant_public_bio","ai_assistant_approved_facts",
+    "ai_v2_enabled","ai_v2_service_recommendations","ai_v2_portfolio_recommendations","ai_v2_qualification_enabled","ai_v2_handover_enabled","ai_v2_tone","ai_v2_qualification_focus","ai_v2_handover_intro"
   ]);
   for (const [key,value] of Object.entries(data || {})) {
     if (!allowed.has(key)) continue;
@@ -255,6 +256,10 @@ async function saveSettings(data, admin) {
       : key === "ai_assistant_welcome" ? text(value,280)
       : key === "ai_assistant_public_bio" ? text(value,6000)
       : key === "ai_assistant_approved_facts" ? text(value,8500)
+      : ["ai_v2_enabled","ai_v2_service_recommendations","ai_v2_portfolio_recommendations","ai_v2_qualification_enabled","ai_v2_handover_enabled"].includes(key) ? bool(value)
+      : key === "ai_v2_tone" ? (["Consultative","Concise","Friendly"].includes(value)?value:"Consultative")
+      : key === "ai_v2_qualification_focus" ? text(value,1200)
+      : key === "ai_v2_handover_intro" ? text(value,280)
       : value;
     await query(
       "INSERT INTO site_settings (key,value) VALUES ($1,$2::jsonb) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",
