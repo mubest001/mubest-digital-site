@@ -11,6 +11,63 @@
   let index=0,busy=false;
   const url=new URLSearchParams(location.search);
   const prefill=url.get('service')||'';
+  const AI_DRAFT_KEY="mubest_ai_brief_v2";
+  function readApprovedAiDraft(){
+    if(url.get("from")!=="ai")return null;
+    try{
+      const x=JSON.parse(sessionStorage.getItem(AI_DRAFT_KEY)||"null");
+      if(!x||x.version!==2||x.source!=="mubest-ai-v2"||x.approved!==true||Date.now()-Number(x.createdAt)>2*60*60*1000||Number(x.createdAt)>Date.now()+60000)return null;
+      return {
+        services:Array.isArray(x.services)?x.services.filter(v=>typeof v==="string").slice(0,8):[],
+        goals:typeof x.goals==="string"?x.goals.slice(0,1800):"",
+        projectType:typeof x.projectType==="string"?x.projectType:"",
+        timeline:typeof x.timeline==="string"?x.timeline:"",
+        budget:typeof x.budget==="string"?x.budget:""
+      };
+    }catch{return null;}
+  }
+  const approvedAiDraft=readApprovedAiDraft();
+  function importApprovedAiDraft(draft){
+    if(!draft)return;
+    const options=$$('input[name="service_choice"]');
+    const normalized=value=>String(value||"").trim().toLowerCase();
+    options.forEach(input=>{input.checked=draft.services.some(item=>normalized(input.value)===normalized(item));});
+    if(!options.some(input=>input.checked)){
+      const unknown=options.find(input=>/not sure yet/i.test(input.value));
+      if(unknown)unknown.checked=true;
+    }
+    const select=(name,value)=>{
+      const element=form.elements[name];
+      if(element&&[...element.options].some(option=>option.value===value))element.value=value;
+    };
+    const goals=form.elements.goals;
+    if(goals)goals.value=draft.goals;
+    select("project_type",draft.projectType);
+    select("timeline",draft.timeline);
+    select("budget",draft.budget);
+    const note=document.createElement("section");
+    note.className="v2-ai-handover-note";
+    note.setAttribute("role","status");
+    const title=document.createElement("strong");
+    title.textContent="Your Mubest AI draft is ready for review.";
+    const paragraph=document.createElement("p");
+    paragraph.textContent="Only the services and notes you approved were brought into this form. Check every detail, complete any missing fields, then decide whether to submit. No enquiry has been sent.";
+    const discard=document.createElement("button");
+    discard.type="button";discard.textContent="Clear imported notes";
+    discard.addEventListener("click",()=>{
+      try{sessionStorage.removeItem(AI_DRAFT_KEY);}catch{}
+      options.forEach(input=>{input.checked=false;});
+      const unknown=options.find(input=>/not sure yet/i.test(input.value));
+      if(unknown)unknown.checked=true;
+      if(goals)goals.value="";
+      ["project_type","timeline","budget"].forEach(name=>{const el=form.elements[name];if(el)el.value="";});
+      note.remove();updateBriefReview();show(0,false);
+    });
+    note.append(title,paragraph,discard);
+    const progress=form.querySelector(".v5-brief-progress");
+    if(progress)progress.before(note);else form.prepend(note);
+  }
+
   const callRequested=$('#v6CallRequested'),callFields=$('#v6CallFields');
   const callDate=$('#v6CallDate'),callWindow=$('#v6CallWindow'),callTimezone=$('#v6CallTimezone');
   if(callDate){
@@ -154,11 +211,13 @@
       document.querySelector('.v5-brief-section').hidden=true;
       document.querySelector('#v5BriefSuccess').hidden=false;
       form.reset();
+      if(approvedAiDraft){try{sessionStorage.removeItem(AI_DRAFT_KEY);}catch{}}
       window.scrollTo({top:document.querySelector('#v5BriefSuccess').getBoundingClientRect().top+window.scrollY-95,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
     }catch(e){
       error(e.message||'Your brief could not be sent. Please try again.');
       submit.disabled=false;submit.textContent='Send my project brief ↗';
     }finally{busy=false;}
   });
+  if(approvedAiDraft)importApprovedAiDraft(approvedAiDraft);
   show(0,false);
 })();
