@@ -114,7 +114,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .md-ai-admin-links{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:18px}
 .md-ai-admin-links .admin-button{background:#ffffff10;color:#fff;border:1px solid #ffffff28}
 .md-ai-admin-links .admin-button:hover{background:#ffffff21}
-.md-ai-new-mark{margin-left:4px;font-size:9px;letter-spacing:.03em;border-radius:4px;padding:3px 5px;background:#b9e769;color:#273f10}
+/* Feature NEW badges are now version-aware and styled in studio4-nav.css. */
 .settings-section textarea[name="ai_assistant_public_bio"],.settings-section textarea[name="ai_assistant_approved_facts"]{min-height:160px;line-height:1.65;resize:vertical}
 @media(max-width:720px){.md-ai-admin-status{padding:22px}.md-ai-admin-steps{padding:15px}.md-ai-admin-steps p{font-size:11px;overflow-wrap:anywhere}}
 .md-ai-admin-test{display:flex;align-items:center;flex-wrap:wrap;gap:11px;margin:17px 0 0;padding:14px 15px;background:#ffffff0b;border:1px solid #ffffff20;border-radius:12px}

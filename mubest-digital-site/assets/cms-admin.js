@@ -150,6 +150,8 @@
   }
   function showApp(email){
     $('#authScreen').hidden=true;$('#adminApp').hidden=false;$('#adminEmail').textContent=email||'Administrator';
+    // Update labels are account-scoped and activated only after sign-in.
+    window.dispatchEvent(new CustomEvent('mubest-admin-ready',{detail:{email:email||'Administrator'}}));
     loadView('overview');
     get('settings').then(s=>{state.settings=s;applyAdminBrand(s);}).catch(()=>{});
   }

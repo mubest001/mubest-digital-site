@@ -1,6 +1,11 @@
 .sidebar-nav .studio4-nav-link{display:flex;align-items:center;gap:13px;width:100%;min-height:43px;padding:10px 13px;border:0;border-radius:9px;background:transparent;color:#687484;text-decoration:none;font:700 11px Inter,Arial,sans-serif;transition:background .18s,color .18s}
 .sidebar-nav .studio4-nav-link svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;flex:none}
-.sidebar-nav .studio4-nav-link span{flex:1;min-width:0}
-.sidebar-nav .studio4-nav-link b{padding:4px 6px;border-radius:5px;background:#eaf2d9;color:#425d23;font-size:8px;letter-spacing:.06em}
+.sidebar-nav .studio4-nav-link span:not(.md-update-badge){flex:1;min-width:0}
+.sidebar-nav .md-update-badge{
+  display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
+  margin-left:auto;padding:4px 7px;border:1px solid #b9e76950;border-radius:5px;
+  background:#b9e769;color:#274018;font:850 9px/1 Inter,Arial,sans-serif;letter-spacing:.06em;
+  white-space:nowrap;
+}
 .sidebar-nav .studio4-nav-link:hover{background:#edf1fb;color:#3049d8}
 .sidebar-nav .studio4-nav-link:focus-visible{outline:2px solid #4563f5;outline-offset:2px}
