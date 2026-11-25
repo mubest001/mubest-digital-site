@@ -6,6 +6,7 @@ import { createHmac } from "node:crypto";
 import { ensureSchema, query } from "../lib/db.js";
 import { DEFAULT_SETTINGS } from "../lib/defaults.js";
 import { recommendPublishedContent } from "../lib/ai-intelligence.js";
+import { fallbackAnswer } from "../lib/ai-fallback.js";
 
 export const config = { maxDuration: 45 };
 
@@ -101,9 +102,9 @@ async function buildPublicKnowledge(settings,messages=[]){
   };
   const aboutServices=/services? (?:does|do|can|are)|(?:all|list|your) services|what (?:do|can) you (?:do|offer)|what does mubest/.test(question);
   const aboutProjects=/portfolio|projects?|case stud|examples? of (?:your|the) work|show me (?:your|some) work/.test(question);
-  const serviceRows=relevant(services,["title","tag","summary","description"],aboutServices?18:9);
-  const projectRows=relevant(projects,["title","category","excerpt","description"],aboutProjects?11:5);
-  const faqRows=relevant(faqs,["question","answer"],6);
+  const serviceRows=relevant(services,["title","tag","summary","description","deliverables"],aboutServices?14:4);
+  const projectRows=relevant(projects,["title","category","excerpt","description"],aboutProjects?4:2);
+  const faqRows=relevant(faqs,["question","answer"],3);
   const knowledge={
     brand:clean(settings.site_name||"Mubest Digital",100),
     operatingArea:clean(settings.location,170),
@@ -112,15 +113,15 @@ async function buildPublicKnowledge(settings,messages=[]){
       phone:clean(settings.phone,100),
       whatsapp:clean(settings.whatsapp,240)
     },
-    approvedProfessionalBio:clean(settings.ai_assistant_public_bio,2400),
-    additionalApprovedPublicFacts:clean(settings.ai_assistant_approved_facts,2800),
-    pages:pageRows.map(row=>{const page=shortPage(row.slug,row.published||{});page.content=Object.fromEntries(Object.entries(page.content).slice(0,7).map(([key,value])=>[key,clean(value,250)]));return page;}),
+    approvedProfessionalBio:clean(settings.ai_assistant_public_bio,1000),
+    additionalApprovedPublicFacts:clean(settings.ai_assistant_approved_facts,1200),
+    pages:pageRows.filter(row=>row.slug==="about"||row.slug==="contact").map(row=>{const page=shortPage(row.slug,row.published||{});page.content=Object.fromEntries(Object.entries(page.content).slice(0,3).map(([key,value])=>[key,clean(value,150)]));return page;}),
     services:serviceRows.map(item=>({
       name:clean(item.title,160),
       summary:clean(item.summary,aboutServices?180:260),
       details:clean(item.description,aboutServices?180:420),
       tag:clean(item.tag,120),
-      deliverables:Array.isArray(item.deliverables)?item.deliverables.slice(0,20).map(x=>clean(x,85)):[],
+      deliverables:Array.isArray(item.deliverables)?item.deliverables.slice(0,10).map(x=>clean(x,85)):[],
       link:"/services/#"+encodeURIComponent(item.slug||"")
     })),
     projects:projectRows.map(item=>{
@@ -151,7 +152,8 @@ async function buildPublicKnowledge(settings,messages=[]){
     }
   };
   return {
-    knowledge:JSON.stringify(knowledge).slice(0,17000),
+    knowledge:JSON.stringify(knowledge),
+    services,projects,faqs,
     // Only published service and portfolio rows can become interactive cards.
     insights:recommendPublishedContent(messages,services,projects,settings)
   };
@@ -266,6 +268,17 @@ function sendSSE(res,type,data={}){
 }
 // Groq's OpenAI-compatible Chat Completions API streams data-only SSE
 // chunks. Keep the public widget's existing start/delta/done/error SSE protocol.
+function sendLocalReply(res,answer,settings,insights){
+  res.statusCode=200;
+  res.setHeader("Content-Type","text/event-stream; charset=utf-8");
+  res.setHeader("Cache-Control","no-cache, no-transform");
+  res.setHeader("X-Accel-Buffering","no");
+  sendSSE(res,"start",{model:"Website knowledge"});
+  sendSSE(res,"delta",{text:answer});
+  if(settings.ai_v2_enabled!==false&&(insights.services?.length||insights.projects?.length))sendSSE(res,"insights",insights);
+  sendSSE(res,"done",{complete:true});
+  res.end();
+}
 function groqErrorMessage(httpStatus,code){
   if(httpStatus===429||/rate_limit|tokens_per_minute|requests_per_day/i.test(code))
     return "The assistant has reached a GroqCloud free-plan limit. Please try again later or use the contact form.";
@@ -288,8 +301,12 @@ function extractGroqText(chunk){
 async function streamAssistant(req,res,messages,settings){
   // Narrow approved public facts to the current question so a useful answer
   // fits the free plan's per-minute token allowance.
-  const {knowledge,insights}=await buildPublicKnowledge(settings,messages);
-  const reservations=await countUsage(req);
+  const {knowledge,insights,services,projects,faqs}=await buildPublicKnowledge(settings,messages);
+  const fallback=(directOnly=false)=>fallbackAnswer({messages,services,projects,faqs,settings,insights,directOnly});
+  const direct=fallback(true);
+  if(direct){return sendLocalReply(res,direct,settings,insights);}
+  let reservations;
+  try{reservations=await countUsage(req);}catch(error){if(error.status===429)return sendLocalReply(res,fallback(),settings,insights);throw error;}
   const model=groqModel();
   const controller=new AbortController();
   const timeout=setTimeout(()=>controller.abort(),32000);
@@ -300,9 +317,9 @@ async function streamAssistant(req,res,messages,settings){
       stream:true,
       messages:[
         {role:"system",content:systemInstructions(knowledge,settings.ai_assistant_name,settings,insights)},
-        ...messages.map(item=>({role:item.role,content:item.content}))
+        ...messages.slice(-6).map(item=>({role:item.role,content:clean(item.content,1200)}))
       ],
-      max_completion_tokens:1000,
+      max_completion_tokens:650,
       temperature:0.65
     };
     // GPT OSS 20B supports low reasoning effort and hidden reasoning; avoid
@@ -327,9 +344,9 @@ async function streamAssistant(req,res,messages,settings){
       const code=clean(raw.replace(/[^a-zA-Z0-9_-]/g,"_"),85);
       // Do not record secrets, visitor content or raw provider messages.
       console.error("Mubest Groq upstream error:",upstream.status,code);
-      throw Object.assign(new Error(groqErrorMessage(upstream.status,code)),{status:503,publicMessage:true});
+      return sendLocalReply(res,fallback(),settings,insights);
     }
-    if(!upstream.body)throw Object.assign(new Error("The GroqCloud reply stream did not start."),{status:502,publicMessage:true});
+    if(!upstream.body)return sendLocalReply(res,fallback(),settings,insights);
     res.statusCode=200;
     res.setHeader("Content-Type","text/event-stream; charset=utf-8");
     res.setHeader("Cache-Control","no-cache, no-transform");
@@ -371,7 +388,7 @@ async function streamAssistant(req,res,messages,settings){
     }
     if(!stop&&!done&&buffer.trim())block(buffer);
     if(!errorSent){
-      if(!chars)sendSSE(res,"error",{message:"GroqCloud returned no readable response. Please try again."});
+      if(!chars){sendSSE(res,"delta",{text:fallback()});sendSSE(res,"done",{complete:true});}
       else {
         delivered=true;
         if(settings.ai_v2_enabled!==false&&
@@ -385,7 +402,7 @@ async function streamAssistant(req,res,messages,settings){
     if(res.headersSent){
       sendSSE(res,"error",{message:error.name==="AbortError"?"GroqCloud took too long. Please try again.":error.publicMessage?error.message:"The AI connection was interrupted. Please try again."});
       res.end();
-    }else throw error;
+    }else return sendLocalReply(res,fallback(),settings,insights);
   }finally{
     clearTimeout(timeout);
     if(!delivered)await refundUsage(reservations);

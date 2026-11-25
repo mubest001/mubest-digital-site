@@ -374,7 +374,7 @@
       '<div class="md-ai-messages" id="md-ai-messages" role="log" aria-live="polite" aria-relevant="additions text"></div>'+
       '<div class="md-ai-suggestions" id="md-ai-suggestions"><span>TRY ASKING</span><div class="md-ai-suggestion-list"></div></div>'+
       '<div class="md-ai-handover" id="md-ai-handover" hidden><button type="button" id="md-ai-prepare-brief">Prepare a project brief ↗</button><span>Review before sharing</span></div>'+
-      '<form class="md-ai-composer" id="md-ai-form"><label class="md-ai-sr-only" for="md-ai-input">Your message</label><div class="md-ai-entry"><textarea id="md-ai-input" placeholder="Ask about services, projects, or an idea…" rows="1" maxlength="1800"></textarea><button type="submit" id="md-ai-send" aria-label="Send message" disabled>'+icons.send+'</button></div><p>Powered by GroqCloud. AI can make mistakes. Avoid private or confidential details. <a href="/start-project/">Start a project ↗</a></p></form>';
+      '<form class="md-ai-composer" id="md-ai-form"><label class="md-ai-sr-only" for="md-ai-input">Your message</label><div class="md-ai-entry"><textarea id="md-ai-input" placeholder="Ask about services, projects, or an idea…" rows="1" maxlength="1800"></textarea><button type="submit" id="md-ai-send" aria-label="Send message" disabled>'+icons.send+'</button></div><p>Powered by GroqCloud &amp; website knowledge. AI can make mistakes. Avoid private or confidential details. <a href="/start-project/">Start a project ↗</a></p></form>';
     document.body.append(dialog);
     launcher.addEventListener("click",()=>dialog.hidden?open():close());
     $("#md-ai-close",dialog).addEventListener("click",close);
