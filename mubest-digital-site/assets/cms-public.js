@@ -100,7 +100,7 @@
       : `<a class="service-card reveal" href="/services/#${esc(item.slug)}"><div class="service-top"><span class="service-icon">${iconSvg(item.icon)}</span><span class="service-number">${String(index+1).padStart(2,"0")} / ${String(items.length).padStart(2,"0")}</span></div><h3>${esc(item.title)}</h3><p>${esc(item.summary || item.description || "")}</p><span class="card-arrow">↗</span></a>`
     ).join("");
     container.querySelectorAll(".reveal").forEach(el => el.classList.add("is-visible"));
-    if(allItems.length>items.length&&!container.parentElement.querySelector('.md-all-services')){const a=document.createElement('a');a.className='button button-primary md-all-services';a.href='/services/';a.textContent='Explore all '+allItems.length+' service categories ↗';a.style.marginTop='24px';container.after(a);}
+    if(allItems.length>items.length&&!container.parentElement.querySelector('.md-all-services')){const a=document.createElement('a');a.className='button button-primary md-all-services';a.href='/services/';a.textContent='EXPLORE SERVICE ↗';a.style.marginTop='24px';container.after(a);}
   }
 
   function renderTestimonials(items) {

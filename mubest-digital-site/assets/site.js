@@ -45,7 +45,7 @@ if(!editorPreview){
   const assistant=document.createElement('script');assistant.src='/assets/ai-widget.js?v=intelligence-v2';assistant.defer=true;document.body.appendChild(assistant);
 }
 
-const cmsScript=document.createElement('script');cmsScript.src='/assets/cms-public.js?v=seo-catalogue-v2';cmsScript.defer=true;
+const cmsScript=document.createElement('script');cmsScript.src='/assets/cms-public.js?v=seo-catalogue-v3';cmsScript.defer=true;
 cmsScript.addEventListener('load',()=>{
   const brandTheme=document.createElement('link');brandTheme.rel='stylesheet';brandTheme.href='/assets/brand-two-color.css';brandTheme.dataset.brandTheme='two-colour';document.head.appendChild(brandTheme);
   if(!document.querySelector('[data-premium-v6-css]')){
