@@ -120,7 +120,7 @@ async function buildPublicKnowledge(settings,messages=[]){
       summary:clean(item.summary,aboutServices?180:260),
       details:clean(item.description,aboutServices?180:420),
       tag:clean(item.tag,120),
-      deliverables:Array.isArray(item.deliverables)?item.deliverables.slice(0,5).map(x=>clean(x,85)):[],
+      deliverables:Array.isArray(item.deliverables)?item.deliverables.slice(0,20).map(x=>clean(x,85)):[],
       link:"/services/#"+encodeURIComponent(item.slug||"")
     })),
     projects:projectRows.map(item=>{

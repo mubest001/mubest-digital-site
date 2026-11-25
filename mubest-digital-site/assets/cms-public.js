@@ -83,11 +83,24 @@
   function renderServices(items, container, detailed = false) {
     if (!container || !Array.isArray(items)) return;
     if (!items.length) { container.innerHTML=""; return; }
+    if(detailed){
+      container.innerHTML = '<div class="md-service-toolbar"><label for="mdServiceSearch">Find a service</label><input id="mdServiceSearch" type="search" placeholder="Search e.g. Shopify, UGC, Klaviyo, SEO" autocomplete="off"><span id="mdServiceCount" aria-live="polite"></span></div>'+items.map(item=>{
+        const subs=Array.isArray(item.deliverables)?item.deliverables:[];
+        return '<article class="md-service-group" id="'+esc(item.slug)+'"><div class="md-service-group-head"><span class="service-icon">'+iconSvg(item.icon)+'</span><div><h2>'+esc(item.title)+'</h2><p>'+esc(item.description||item.summary||'')+'</p></div></div><details><summary>Explore '+subs.length+' subservices</summary><ul>'+subs.map(d=>'<li>'+esc(d)+'</li>').join('')+'</ul></details><a class="button button-primary" href="/contact/">Discuss this service ↗</a></article>';
+      }).join('')+'<p id="mdServiceEmpty" hidden>No matching services. Try another search or contact us about your project.</p>';
+      const search=container.querySelector('#mdServiceSearch'),count=container.querySelector('#mdServiceCount'),cards=[...container.querySelectorAll('.md-service-group')];
+      function filter(){const q=search.value.trim().toLowerCase();let visible=0;for(const card of cards){const hit=!q||card.textContent.toLowerCase().includes(q);card.hidden=!hit;if(hit){visible++;if(q)card.querySelector('details').open=true;}}count.textContent=visible+' categories';container.querySelector('#mdServiceEmpty').hidden=visible>0;}
+      search.addEventListener('input',filter);filter();
+      const anchor=decodeURIComponent(location.hash.slice(1));if(anchor){const target=document.getElementById(anchor);if(target?.classList.contains('md-service-group')){target.querySelector('details').open=true;requestAnimationFrame(()=>target.scrollIntoView({block:'start'}));}}
+      return;
+    }
+    const allItems=items;items=items.slice(0,6);
     container.innerHTML = items.map((item,index) => detailed
       ? `<article class="service-detail reveal" id="${esc(item.slug)}"><span class="service-icon">${iconSvg(item.icon)}</span><div><h2>${esc(item.title)}</h2><p>${esc(item.description || item.summary || "")}</p>${item.tag ? `<span class="service-tag">${esc(item.tag)}</span>` : ""}</div><ul>${(item.deliverables || []).map(d=>`<li>${esc(d)}</li>`).join("")}</ul></article>`
       : `<a class="service-card reveal" href="/services/#${esc(item.slug)}"><div class="service-top"><span class="service-icon">${iconSvg(item.icon)}</span><span class="service-number">${String(index+1).padStart(2,"0")} / ${String(items.length).padStart(2,"0")}</span></div><h3>${esc(item.title)}</h3><p>${esc(item.summary || item.description || "")}</p><span class="card-arrow">↗</span></a>`
     ).join("");
     container.querySelectorAll(".reveal").forEach(el => el.classList.add("is-visible"));
+    if(allItems.length>items.length&&!container.parentElement.querySelector('.md-all-services')){const a=document.createElement('a');a.className='button button-primary md-all-services';a.href='/services/';a.textContent='Explore all '+allItems.length+' service categories ↗';a.style.marginTop='24px';container.after(a);}
   }
 
   function renderTestimonials(items) {

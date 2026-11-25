@@ -1,3 +1,4 @@
+import { SERVICE_CATALOGUE, SERVICE_PORTFOLIO_CATEGORIES } from './service-catalogue.js';
 import { neon } from "@neondatabase/serverless";
 import { DEFAULT_SETTINGS, DEFAULT_PAGES, DEFAULT_SERVICES, DEFAULT_PORTFOLIO, DEFAULT_FAQS } from "./defaults.js";
 
@@ -174,6 +175,28 @@ async function seed() {
       [item.slug,item.title,item.summary,item.description,item.tag,item.icon,JSON.stringify(item.deliverables),item.sort_order,item.status]
     );
   }
+  // Atomic, one-time additive catalogue migration. Preserve existing copy, status and custom services.
+  await sql.query(`
+    WITH migration AS (
+      INSERT INTO site_settings(key,value) VALUES ('service_catalogue_v2_applied','true'::jsonb)
+      ON CONFLICT(key) DO NOTHING RETURNING key
+    ), incoming AS (
+      SELECT * FROM jsonb_to_recordset($1::jsonb) AS r(slug text,title text,summary text,description text,tag text,icon text,deliverables jsonb,sort_order integer,status text)
+    ), merged AS (
+      INSERT INTO services(slug,title,summary,description,tag,icon,deliverables,sort_order,status)
+      SELECT i.slug,i.title,i.summary,i.description,i.tag,i.icon,i.deliverables,i.sort_order,i.status FROM incoming i CROSS JOIN migration
+      ON CONFLICT(slug) DO UPDATE SET deliverables=(
+        SELECT COALESCE(jsonb_agg(val ORDER BY first_ord),'[]'::jsonb) FROM (
+          SELECT val,MIN(ord) AS first_ord FROM jsonb_array_elements(COALESCE(services.deliverables,'[]'::jsonb)||EXCLUDED.deliverables) WITH ORDINALITY AS x(val,ord) GROUP BY val
+        ) unique_items
+      ),updated_at=NOW() RETURNING id
+    )
+    UPDATE site_settings s SET value=(
+      SELECT COALESCE(jsonb_agg(val ORDER BY first_ord),'[]'::jsonb) FROM (
+        SELECT val,MIN(ord) AS first_ord FROM jsonb_array_elements(COALESCE(s.value,'[]'::jsonb)||$2::jsonb) WITH ORDINALITY AS x(val,ord) GROUP BY val
+      ) unique_items
+    ),updated_at=NOW() WHERE s.key='portfolio_service_categories' AND EXISTS(SELECT 1 FROM migration)
+  `, [JSON.stringify(SERVICE_CATALOGUE),JSON.stringify(SERVICE_PORTFOLIO_CATEGORIES)]);
   for (const item of DEFAULT_PORTFOLIO) {
     await sql.query(
       `INSERT INTO portfolio_projects (slug,title,category,excerpt,description,cover_image,gallery,project_url,featured,sort_order,status,published_at)

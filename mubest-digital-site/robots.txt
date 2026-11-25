@@ -1,3 +1,4 @@
 User-agent: *
 Allow: /
 Disallow: /admin/
+Sitemap: https://mubestdigital.vercel.app/sitemap.xml

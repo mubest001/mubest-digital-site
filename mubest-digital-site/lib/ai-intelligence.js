@@ -42,7 +42,7 @@ export function recommendPublishedContent(messages,services=[],projects=[],setti
   const discussesProject=/\b(i (need|want|am|would|have|run)|we (need|want|are|have)|my (business|brand|store|website|company)|our (business|brand|website)|looking for|planning to|help me|create|build|redesign|set up|launch|improve)\b/.test(intent);
   const ranks=(rows,fields)=>rows.map((row,index)=>({row,index,...relevant(row,words,userGroups,fields)}))
     .sort((a,b)=>b.score-a.score||a.index-b.index);
-  const svc=ranks(services,["title","summary","description","tag"]);
+  const svc=ranks(services,["title","summary","description","tag","deliverables"]);
   const projectInputs=projects.map(project=>{
     const info=project?.details&&typeof project.details==="object"&&!Array.isArray(project.details)?project.details:{};
     return {...project,serviceTags:Array.isArray(info.service_categories)?info.service_categories.join(" "):"",publishedHighlights:limit(info.project_highlight,240)};
