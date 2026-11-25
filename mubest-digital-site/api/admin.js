@@ -21,9 +21,10 @@ const array = v => Array.isArray(v) ? v : String(v || "").split(/\r?\n|,/).map(x
 const cleanDetails = src => {
   const input = src && typeof src === "object" && !Array.isArray(src) ? src : {};
   const result = {};
-  for (const key of ["role","project_type","year","duration","services_used","skills_used","deliverables","service_categories","challenge","goals","approach","solution","outcomes","client_feedback","before_image","after_image","walkthrough_video","project_highlight"]) {
+  for (const key of ["role","project_type","year","duration","services_used","skills_used","deliverables","service_categories","challenge","goals","approach","solution","outcomes","client_feedback","before_image","after_image","walkthrough_video","video_cover","project_highlight"]) {
     const v = input[key];
-    if (key === "service_categories") result[key]=normalizeServiceCategories(v).slice(0,12);
+    if (key === "video_cover") result[key]=v===true||v==="true";
+    else if (key === "service_categories") result[key]=normalizeServiceCategories(v).slice(0,12);
     else if (["services_used","skills_used","deliverables"].includes(key)) result[key] = array(v).slice(0,24).map(x => text(x,150));
     else if (["before_image","after_image","walkthrough_video"].includes(key)) {
       const candidate=text(v,2000);
@@ -91,7 +92,7 @@ async function getResource(resource) {
     return Object.fromEntries(rows.map(row => [row.key,row.value]));
   }
   if (resource === "pages") return await query("SELECT slug,draft,published,status,updated_at,published_at FROM site_pages ORDER BY slug");
-  if (resource === "portfolio") return await query("SELECT * FROM portfolio_projects ORDER BY sort_order ASC,id DESC");
+  if (resource === "portfolio") return await query("SELECT p.*, COALESCE(e.clicks,0)::int AS engagement_clicks, COALESCE(e.unique_clickers,0)::int AS engagement_unique_clickers FROM portfolio_projects p LEFT JOIN (SELECT project_id,COUNT(*)::int AS clicks,COUNT(DISTINCT visitor_id)::int AS unique_clickers FROM portfolio_engagement WHERE event_type='click' GROUP BY project_id) e ON e.project_id=p.id ORDER BY p.sort_order ASC,p.id DESC");
   if (resource === "services") return await query("SELECT * FROM services ORDER BY sort_order ASC,id ASC");
   if (resource === "testimonials") return await query("SELECT * FROM testimonials ORDER BY sort_order ASC,id DESC");
   if (resource === "faqs") return await query("SELECT * FROM faqs ORDER BY sort_order ASC,id ASC");

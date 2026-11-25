@@ -7,7 +7,7 @@
 (() => {
   "use strict";
 
-  const FEATURE_RELEASES = Object.freeze({});
+  const FEATURE_RELEASES = Object.freeze({portfolio:"2026-11-25.2",portfolioanalytics:"2026-11-25.2"});
   const STORAGE_PREFIX = "mubest-content-studio-seen-updates-v1:";
   let storageKey = "";
   let seen = Object.create(null);

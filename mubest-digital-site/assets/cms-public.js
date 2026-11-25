@@ -53,7 +53,9 @@
       const detailUrl = "/portfolio/project/?slug=" + encodeURIComponent(String(item.slug||""));
       const existing = oldByTitle.get(String(item.title || "").trim().toLowerCase());
 
-      if (!safeUrl(item.cover_image) && existing) {
+      const video= safeUrl(item.details?.walkthrough_video);
+      const videoCover=item.details?.video_cover===true && /\.(mp4|webm)(?:\?|$)/i.test(video);
+      if (!videoCover && !safeUrl(item.cover_image) && existing) {
         const clone = existing.cloneNode(true);
         const category = clone.querySelector(".work-info small");
         const title = clone.querySelector(".work-info h3");
@@ -70,7 +72,7 @@
         return clone.outerHTML;
       }
 
-      const visual = safeUrl(item.cover_image)
+      const visual = videoCover ? `<video src="${esc(video)}" ${safeUrl(item.cover_image)?`poster="${esc(safeUrl(item.cover_image))}"`:''} muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover" aria-label="${esc(item.title)} video preview"></video>` : safeUrl(item.cover_image)
         ? `<img src="${esc(safeUrl(item.cover_image))}" alt="${esc(item.title)} project preview" loading="lazy">`
         : `<div class="cms-project-placeholder"><span>${esc((item.title || "M").split(/\s+/).map(x=>x[0]).join("").slice(0,3).toUpperCase())}</span></div>`;
       return `<article class="work-card reveal cms-work-card"><a href="${esc(detailUrl)}" aria-label="Read ${esc(item.title)} case study"><div class="work-visual cms-work-visual">${visual}</div></a><div class="work-info"><div><small>${esc(item.category || "Selected project")}</small><h3><a href="${esc(detailUrl)}">${esc(item.title)}</a></h3><p>${esc(item.excerpt || item.description || "")}</p></div><a class="work-link" href="${esc(detailUrl)}" aria-label="Read ${esc(item.title)} case study">↗</a></div></article>`;

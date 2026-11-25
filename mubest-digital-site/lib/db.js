@@ -60,7 +60,16 @@ const schema = [
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   published_at TIMESTAMPTZ
 )`,
-`ALTER TABLE portfolio_projects ADD COLUMN IF NOT EXISTS details JSONB NOT NULL DEFAULT '{}'::jsonb`,
+`ALTER TABLE portfolio_projects ADD COLUMN IF NOT EXISTS details JSONB NOT NULL DEFAULT '{}'::jsonb`, 
+`CREATE TABLE IF NOT EXISTS portfolio_engagement (
+ event_id UUID PRIMARY KEY, project_id BIGINT NOT NULL REFERENCES portfolio_projects(id) ON DELETE CASCADE,
+ visitor_id UUID NOT NULL, event_type TEXT NOT NULL CHECK(event_type IN ('impression','click','view','video_play','video_complete','contact','engagement')),
+ seconds INTEGER NOT NULL DEFAULT 0 CHECK(seconds BETWEEN 0 AND 1800),
+ source TEXT NOT NULL DEFAULT '', country TEXT NOT NULL DEFAULT '', device TEXT NOT NULL DEFAULT '',
+ created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+)`,
+`CREATE INDEX IF NOT EXISTS portfolio_engagement_date_idx ON portfolio_engagement(created_at,project_id)`,
+`CREATE INDEX IF NOT EXISTS portfolio_engagement_visitor_idx ON portfolio_engagement(visitor_id,created_at)`,
 `CREATE TABLE IF NOT EXISTS services (
   id BIGSERIAL PRIMARY KEY,
   slug TEXT NOT NULL UNIQUE,

@@ -61,9 +61,9 @@
     }
     const video=safe(details.walkthrough_video);
     if(video&&!$('#v5Walkthrough')){
-      const isYouTube=video.match(/^https:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:[&#?].*)?$/);
+      const isYouTube=video.match(/^https:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:[&#?].*)?$/);
       const isDirect=/\.(mp4|webm)(?:\?.*)?$/i.test(video);
-      const embed=isYouTube?'<iframe loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="'+esc(title)+' project walkthrough" src="https://www.youtube-nocookie.com/embed/'+isYouTube[1]+'" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"></iframe>':isDirect?'<video src="'+esc(video)+'" controls playsinline preload="none" aria-label="'+esc(title)+' video walkthrough"></video>':'';
+      const embed=isYouTube?'<iframe loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="'+esc(title)+' project walkthrough" src="https://www.youtube-nocookie.com/embed/'+isYouTube[1]+'" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"></iframe>':isDirect?'<video src="'+esc(video)+'" controls playsinline preload="metadata" style="max-height:75vh;width:100%;object-fit:contain;background:#17191f" aria-label="'+esc(title)+' video walkthrough"></video>':'';
       if(embed){
         const section=document.createElement('section');section.id='v5Walkthrough';section.className='v5-video-section';
         section.innerHTML='<div class="container"><div class="v5-feature-intro"><span class="eyebrow">Behind the project</span><h2>Watch the walkthrough.</h2><p>A closer look at the work and presentation.</p></div><div class="v5-video-frame">'+embed+'</div></div>';
