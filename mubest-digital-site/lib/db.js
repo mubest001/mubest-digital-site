@@ -139,6 +139,15 @@ const schema = [
  `CREATE TABLE IF NOT EXISTS blog_posts (
  id BIGSERIAL PRIMARY KEY,slug TEXT NOT NULL UNIQUE,title TEXT NOT NULL,description TEXT NOT NULL DEFAULT '',category TEXT NOT NULL DEFAULT '',service TEXT NOT NULL DEFAULT '',body TEXT NOT NULL DEFAULT '',source TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft','published','archived')),created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),published_at TIMESTAMPTZ
 )`,
+ `ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS cover_image TEXT NOT NULL DEFAULT ''`,
+`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS cover_alt TEXT NOT NULL DEFAULT ''`,
+`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS author TEXT NOT NULL DEFAULT 'Mubest Digital'`,
+`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS youtube_url TEXT NOT NULL DEFAULT ''`,
+`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS portfolio_slug TEXT NOT NULL DEFAULT ''`,
+`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS featured BOOLEAN NOT NULL DEFAULT FALSE`,
+`CREATE TABLE IF NOT EXISTS blog_engagement (post_id BIGINT NOT NULL REFERENCES blog_posts(id) ON DELETE CASCADE,visitor_id UUID NOT NULL,visit_id UUID NOT NULL,event_type TEXT NOT NULL CHECK(event_type IN ('view','service_click','portfolio_click','contact_click','read_75')),created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),PRIMARY KEY(post_id,visit_id,event_type))`,
+`CREATE INDEX IF NOT EXISTS blog_engagement_date_idx ON blog_engagement(created_at,post_id)`,
+`CREATE TABLE IF NOT EXISTS blog_newsletter_requests(email TEXT PRIMARY KEY,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),consent_version TEXT NOT NULL DEFAULT 'v1',status TEXT NOT NULL DEFAULT 'pending')`,
 `CREATE TABLE IF NOT EXISTS audit_logs (
   id BIGSERIAL PRIMARY KEY,
   user_id BIGINT REFERENCES admin_users(id) ON DELETE SET NULL,
@@ -204,6 +213,8 @@ async function seed() {
   await sql.query(`WITH migration AS (INSERT INTO site_settings(key,value) VALUES ('blog_starters_v1_applied','true'::jsonb) ON CONFLICT(key) DO NOTHING RETURNING key)
  INSERT INTO blog_posts(slug,title,description,category,service,body,source,status)
  SELECT x.slug,x.title,x.description,x.category,x.service,x.body,x.source,'draft' FROM jsonb_to_recordset($1::jsonb) AS x(slug text,title text,description text,category text,service text,body text,source text) CROSS JOIN migration ON CONFLICT(slug) DO NOTHING`,[JSON.stringify(BLOG_STARTERS)]);
+  await sql.query(`WITH migration AS (INSERT INTO site_settings(key,value) VALUES ('blog_launch_v2_applied','true'::jsonb) ON CONFLICT(key) DO NOTHING RETURNING key)
+ UPDATE blog_posts p SET status='published',published_at=COALESCE(p.published_at,NOW()),updated_at=NOW(),cover_image=CASE WHEN p.cover_image='' THEN '/assets/blog/'||p.slug||'.svg' ELSE p.cover_image END,cover_alt=CASE WHEN p.cover_alt='' THEN 'Illustrated guide: '||p.title ELSE p.cover_alt END,featured=CASE WHEN p.slug='klaviyo-abandoned-checkout-flow-guide' THEN TRUE ELSE p.featured END,source=CASE WHEN p.slug='shopify-store-conversion-checklist' AND p.source='' THEN 'https://help.shopify.com/en/manual/reports-and-analytics/shopify-reports/report-types/default-reports/behaviour-reports' ELSE p.source END WHERE p.slug=ANY($1::text[]) AND p.status IN ('draft','published') AND EXISTS(SELECT 1 FROM migration)`,[BLOG_STARTERS.map(p=>p.slug)]);
   for (const item of DEFAULT_PORTFOLIO) {
     await sql.query(
       `INSERT INTO portfolio_projects (slug,title,category,excerpt,description,cover_image,gallery,project_url,featured,sort_order,status,published_at)
