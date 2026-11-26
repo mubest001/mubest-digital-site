@@ -335,7 +335,7 @@
     // Social links use platform logo SVG assets, with accessible names for screen readers.
     // Hide platforms without valid URLs; existing four stored social links are preserved.
     const socialStyles=document.querySelector('link[data-mubest-social]');
-    if(!socialStyles){const link=document.createElement('link');link.rel='stylesheet';link.href='/assets/social-icons.css?v=7';link.dataset.mubestSocial='1';document.head.appendChild(link);}
+    if(!socialStyles){const link=document.createElement('link');link.rel='stylesheet';link.href='/assets/social-icons.css?v=8';link.dataset.mubestSocial='1';document.head.appendChild(link);}
     const platforms=[
       ['instagram','Instagram',settings.social_instagram],
       ['linkedin','LinkedIn',settings.social_linkedin],

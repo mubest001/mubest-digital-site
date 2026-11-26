@@ -13,3 +13,8 @@
 html.vb-editing .vb-social-icons .vb-social-empty{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:10px 14px;border:1px dashed #a2b7ff;border-radius:11px;color:#3c55bf;background:#f3f5ff;font:700 12px Inter,Arial,sans-serif}
 @media(max-width:520px){.cms-social-links,.vb-social-icons{gap:8px}.cms-social-links a,.vb-social-icons a{width:40px;height:40px;border-radius:11px}}
 @media(prefers-reduced-motion:reduce){.cms-social-links a,.vb-social-icons a{transition:none}}
+
+/* Keep logo-only social buttons circular even inside narrow footer columns. */
+.cms-social-links a,.vb-social-icons a{box-sizing:border-box;width:43px!important;height:43px!important;min-width:43px!important;min-height:43px!important;max-width:43px!important;max-height:43px!important;flex:0 0 43px!important;aspect-ratio:1 / 1;padding:0!important;border-radius:50%!important;margin:0;line-height:1}
+.cms-social-links a img,.vb-social-icons a img{width:19px;height:19px;flex:none;object-fit:contain}
+@media(max-width:520px){.cms-social-links a,.vb-social-icons a{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;max-width:40px!important;max-height:40px!important;flex-basis:40px!important}}
