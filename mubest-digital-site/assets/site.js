@@ -5,9 +5,9 @@ const headerTools=document.querySelector('.site-header .header-inner');
 if(headerTools){
  nav?.querySelectorAll('a[href="/client-portal/"]').forEach(a=>a.remove());
  if(!headerTools.querySelector('.md-client-login')){
-  const login=document.createElement('a');login.href='/client-portal/';login.className='md-client-login';login.setAttribute('aria-label','Client portal login');login.title='Client portal login';
+  const login=document.createElement('a');login.href='/client-portal/';login.className='md-client-login';login.setAttribute('aria-label','Client Portal');login.title='Client Portal';
   if(location.pathname.replace(/\/+$/,'')==='/client-portal'){login.classList.add('is-active');login.setAttribute('aria-current','page');nav?.querySelector('a[href="/contact/"]')?.removeAttribute('aria-current');nav?.querySelector('a[href="/contact/"]')?.classList.remove('active');}
-  login.innerHTML='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M3 12h12m-5-5 5 5-5 5"/></svg>';
+  login.innerHTML='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="7.5" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg>';
   const cta=headerTools.querySelector('.header-cta');if(cta)cta.before(login);else if(menuToggle)menuToggle.before(login);else headerTools.append(login);
  }
  const style=document.createElement('link');style.rel='stylesheet';style.href='/assets/header-login.css?v=1';document.head.append(style);
