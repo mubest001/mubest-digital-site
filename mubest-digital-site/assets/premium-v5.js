@@ -132,7 +132,7 @@
       try { const module=await import('/assets/portfolio-categories.js?v=2');module.initPortfolioCategories(data.portfolio||[],data.settings||{}); }
       catch(error){console.warn('Portfolio navigation unavailable on case study:',error);}
     }
-    mountSearch(data);
+    // Global header search retired; keep page-specific filters intact.
     trustOnServices(data);
     serviceActions(data);
     addBriefLinks();

@@ -1,8 +1,16 @@
 /* Mubest Digital — public interactions, CMS bridge and Studio 4.0 runtime. */
 const menuToggle = document.querySelector('[data-menu-toggle]');
 const nav = document.querySelector('[data-site-nav]');
-if(nav&&!nav.querySelector('a[href="/client-portal/"]')){
- const portalLink=document.createElement('a');portalLink.href='/client-portal/';portalLink.textContent='Client portal';nav.append(portalLink);
+const headerTools=document.querySelector('.site-header .header-inner');
+if(headerTools){
+ nav?.querySelectorAll('a[href="/client-portal/"]').forEach(a=>a.remove());
+ if(!headerTools.querySelector('.md-client-login')){
+  const login=document.createElement('a');login.href='/client-portal/';login.className='md-client-login';login.setAttribute('aria-label','Client portal login');login.title='Client portal login';
+  if(location.pathname.replace(/\/+$/,'')==='/client-portal'){login.classList.add('is-active');login.setAttribute('aria-current','page');nav?.querySelector('a[href="/contact/"]')?.removeAttribute('aria-current');nav?.querySelector('a[href="/contact/"]')?.classList.remove('active');}
+  login.innerHTML='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M3 12h12m-5-5 5 5-5 5"/></svg>';
+  const cta=headerTools.querySelector('.header-cta');if(cta)cta.before(login);else if(menuToggle)menuToggle.before(login);else headerTools.append(login);
+ }
+ const style=document.createElement('link');style.rel='stylesheet';style.href='/assets/header-login.css?v=1';document.head.append(style);
 }
 document.querySelectorAll('.site-footer .footer-col:first-of-type,.growth-footer').forEach(footer=>{if(!footer.querySelector('a[href="/client-portal/"]')){const a=document.createElement('a');a.href='/client-portal/';a.textContent='Client portal';footer.append(a);}});
 if (menuToggle && nav) {
@@ -43,7 +51,7 @@ document.querySelectorAll('[data-current-year]').forEach(node=>node.textContent=
 const editorPreview=new URLSearchParams(location.search).has('mubest-editor');
 if(editorPreview){const bridge=document.createElement('script');bridge.src='/assets/visual-editor-bridge.js?v=2-direct';document.body.appendChild(bridge);}
 if(!editorPreview){
-  const premium=document.createElement('script');premium.src='/assets/premium-v5.js?v=1';premium.defer=true;document.body.appendChild(premium);
+  const premium=document.createElement('script');premium.src='/assets/premium-v5.js?v=login-v1';premium.defer=true;document.body.appendChild(premium);
 }
 if(!editorPreview){
   const assistant=document.createElement('script');assistant.src='/assets/ai-widget.js?v=quota-fallback-v1';assistant.defer=true;document.body.appendChild(assistant);
