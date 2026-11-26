@@ -7,8 +7,8 @@ const SITE='https://mubestdigital.vercel.app',hash=s=>createHash('sha256').updat
 const json=(res,status,data)=>{res.setHeader('Cache-Control','private, no-store');return res.status(status).json(data);};
 async function options(){const [services,projects]=await Promise.all([query("SELECT slug,title FROM services WHERE status='published' ORDER BY sort_order,id"),query("SELECT slug,title FROM portfolio_projects WHERE status='published' ORDER BY title")]);const map=new Map(services.map(s=>[s.slug,s]));for(const k of KEYWORDS)if(!map.has(k.slug))map.set(k.slug,{slug:k.slug,title:k.title});return {services:[...map.values()],projects};}
 const valid=(p,o)=>(!p.service_slug||o.services.some(s=>s.slug===p.service_slug))&&(!p.project_slug||o.projects.some(s=>s.slug===p.project_slug));
-export default async function handler(req,res){try{
- const u=new URL(req.url,'https://local.invalid'),mode=String(req.query?.mode||u.searchParams.get('mode')||'public');if(!['GET','POST'].includes(req.method))return json(res,405,{error:'Method not allowed'});
+export default async function handler(req,res,modeOverride){try{
+ const u=new URL(req.url,'https://local.invalid'),mode=modeOverride||String(req.query?.mode||u.searchParams.get('mode')||'public');if(!['GET','POST'].includes(req.method))return json(res,405,{error:'Method not allowed'});
  await ensureSchema();
  if(mode==='public'&&req.method==='GET'){const [o,reviews]=await Promise.all([options(),query("SELECT id,name,role,company,quote,rating,avatar_url,service_slug,project_slug,featured FROM testimonials WHERE status='published' ORDER BY featured DESC,sort_order,id DESC")]);return json(res,200,{...o,reviews:reviews.map(r=>({...r,service_title:o.services.find(s=>s.slug===r.service_slug)?.title||''}))});}
  if(req.method==='POST'){assertSameOrigin(req);if(req.headers['sec-fetch-site']==='cross-site')return json(res,403,{error:'Origin denied'});if(Number(req.headers['content-length']||0)>16000)return json(res,413,{error:'Request too large'});}
