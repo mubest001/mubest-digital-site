@@ -103,16 +103,13 @@
     if(allItems.length>items.length&&!container.parentElement.querySelector('.md-all-services')){const a=document.createElement('a');a.className='button button-primary md-all-services';a.href='/services/';a.textContent='EXPLORE SERVICE ↗';a.style.marginTop='24px';container.after(a);}
   }
 
-  function renderTestimonials(items) {
-    if (!Array.isArray(items) || document.querySelector(".cms-testimonials") || document.body.dataset.page!=="home") return;
-    const cta = document.querySelector(".cta-section");
-    if (!cta) return;
-    const section = document.createElement("section");
-    section.className = "cms-testimonials";
-    section.innerHTML = `<div class="container"><div class="section-head"><div><span class="eyebrow">Client feedback</span><h2>Good work is better when it makes a difference.</h2></div></div><div class="cms-testimonial-grid">${items.slice(0,3).map(item=>`<article class="cms-testimonial"><div aria-label="${Math.min(5,Math.max(1,Number(item.rating)||5))} out of 5 stars">${"★".repeat(Math.min(5,Math.max(1,Number(item.rating)||5)))}</div><blockquote>“${esc(item.quote)}”</blockquote><strong>${esc(item.name)}</strong><small>${esc([item.role,item.company].filter(Boolean).join(" · "))}</small></article>`).join("")}</div></div>`;
-    if(!items.length)section.querySelector(".cms-testimonial-grid").textContent="Client feedback will appear here after review.";
-    const links=document.createElement("div");links.style.cssText="display:flex;gap:16px;flex-wrap:wrap;margin-top:22px";links.innerHTML='<a class="button button-primary" href="/reviews/">All client reviews ↗</a><a class="button" href="/feedback/">Leave feedback ↗</a>';section.querySelector(".container").append(links);
-    cta.parentNode.insertBefore(section,cta);
+  function renderTestimonials(items, data) {
+    if (!Array.isArray(items) || document.body.dataset.page!=="home" || document.querySelector(".md-testimonial-section")) return;
+    const cta=document.querySelector(".cta-section");
+    if(!cta)return;
+    const rows=items.map(r=>{const p=(data.portfolio||[]).find(x=>x.slug===r.project_slug);return {...r,service_title:(data.services||[]).find(x=>x.slug===r.service_slug)?.title||"",project_title:p?.title||"",project_cover:p?.cover_image||""};});
+    const show=()=>{if(window.MubestTestimonials&&!document.querySelector(".md-testimonial-section"))cta.before(window.MubestTestimonials.section(rows));};
+    if(window.MubestTestimonials)show();else{const s=document.createElement("script");s.src="/assets/testimonial-showcase.js?v=1";s.onload=show;document.head.append(s);}
   }
 
   function renderFaqs(items) {
@@ -233,7 +230,7 @@
       if(homeMark) {homeMark.classList.add("cms-about-mark");homeMark.innerHTML=`<img src="${esc(safeUrl(aboutImage))}" alt="Mubest" loading="lazy">`;}
     }
 
-    if (settings.show_home_testimonials !== false) renderTestimonials(data.testimonials);
+    if (settings.show_home_testimonials !== false) renderTestimonials(data.testimonials,data);
     renderFaqs(data.faqs);
 
 
