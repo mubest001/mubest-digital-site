@@ -1,0 +1,3 @@
+export const clean=(v,n)=>String(v??'').trim().slice(0,n);
+export const slug=v=>typeof v==='string'&&/^[a-z0-9][a-z0-9_-]{0,179}$/i.test(v);
+export function validateFeedback(b){const p={name:clean(b.name,160),email:clean(b.email,254).toLowerCase(),company:clean(b.company,160),role:clean(b.role,160),service_slug:clean(b.service_slug,180),project_slug:clean(b.project_slug,180),quote:clean(b.quote,3000),rating:Number(b.rating),consent:b.consent===true};if(!p.name||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email)||p.quote.length<10||!Number.isInteger(p.rating)||p.rating<1||p.rating>5||p.service_slug&&!slug(p.service_slug)||p.project_slug&&!slug(p.project_slug))return null;return p;}

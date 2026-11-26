@@ -104,12 +104,14 @@
   }
 
   function renderTestimonials(items) {
-    if (!Array.isArray(items) || !items.length || document.querySelector(".cms-testimonials")) return;
+    if (!Array.isArray(items) || document.querySelector(".cms-testimonials") || document.body.dataset.page!=="home") return;
     const cta = document.querySelector(".cta-section");
     if (!cta) return;
     const section = document.createElement("section");
     section.className = "cms-testimonials";
-    section.innerHTML = `<div class="container"><div class="section-head"><div><span class="eyebrow">Client feedback</span><h2>Good work is better when it makes a difference.</h2></div></div><div class="cms-testimonial-grid">${items.map(item=>`<article class="cms-testimonial"><div aria-label="${Math.min(5,Math.max(1,Number(item.rating)||5))} out of 5 stars">${"★".repeat(Math.min(5,Math.max(1,Number(item.rating)||5)))}</div><blockquote>“${esc(item.quote)}”</blockquote><strong>${esc(item.name)}</strong><small>${esc([item.role,item.company].filter(Boolean).join(" · "))}</small></article>`).join("")}</div></div>`;
+    section.innerHTML = `<div class="container"><div class="section-head"><div><span class="eyebrow">Client feedback</span><h2>Good work is better when it makes a difference.</h2></div></div><div class="cms-testimonial-grid">${items.slice(0,3).map(item=>`<article class="cms-testimonial"><div aria-label="${Math.min(5,Math.max(1,Number(item.rating)||5))} out of 5 stars">${"★".repeat(Math.min(5,Math.max(1,Number(item.rating)||5)))}</div><blockquote>“${esc(item.quote)}”</blockquote><strong>${esc(item.name)}</strong><small>${esc([item.role,item.company].filter(Boolean).join(" · "))}</small></article>`).join("")}</div></div>`;
+    if(!items.length)section.querySelector(".cms-testimonial-grid").textContent="Client feedback will appear here after review.";
+    const links=document.createElement("div");links.style.cssText="display:flex;gap:16px;flex-wrap:wrap;margin-top:22px";links.innerHTML='<a class="button button-primary" href="/reviews/">All client reviews ↗</a><a class="button" href="/feedback/">Leave feedback ↗</a>';section.querySelector(".container").append(links);
     cta.parentNode.insertBefore(section,cta);
   }
 

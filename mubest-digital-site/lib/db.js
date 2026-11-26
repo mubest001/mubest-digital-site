@@ -99,6 +99,13 @@ const schema = [
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 )`,
+ `ALTER TABLE testimonials ADD COLUMN IF NOT EXISTS service_slug TEXT NOT NULL DEFAULT ''`,
+`ALTER TABLE testimonials ADD COLUMN IF NOT EXISTS project_slug TEXT NOT NULL DEFAULT ''`,
+`ALTER TABLE testimonials ADD COLUMN IF NOT EXISTS featured BOOLEAN NOT NULL DEFAULT FALSE`,
+`CREATE TABLE IF NOT EXISTS feedback_invites (id BIGSERIAL PRIMARY KEY,token_hash TEXT UNIQUE NOT NULL,label TEXT NOT NULL DEFAULT '',service_slug TEXT NOT NULL DEFAULT '',project_slug TEXT NOT NULL DEFAULT '',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),expires_at TIMESTAMPTZ NOT NULL DEFAULT NOW()+INTERVAL '30 days',used_at TIMESTAMPTZ,revoked_at TIMESTAMPTZ)`,
+`CREATE TABLE IF NOT EXISTS feedback_submissions (id BIGSERIAL PRIMARY KEY,invite_id BIGINT REFERENCES feedback_invites(id) ON DELETE SET NULL,testimonial_id BIGINT UNIQUE REFERENCES testimonials(id) ON DELETE SET NULL,name TEXT NOT NULL,email TEXT NOT NULL,company TEXT NOT NULL DEFAULT '',role TEXT NOT NULL DEFAULT '',service_slug TEXT NOT NULL DEFAULT '',project_slug TEXT NOT NULL DEFAULT '',quote TEXT NOT NULL,rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),consent BOOLEAN NOT NULL DEFAULT FALSE,status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','approved','rejected','archived')),created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`,
+`CREATE INDEX IF NOT EXISTS feedback_inbox_idx ON feedback_submissions(status,created_at DESC)`,
+`CREATE INDEX IF NOT EXISTS feedback_email_idx ON feedback_submissions(email,created_at DESC)`,
 `CREATE TABLE IF NOT EXISTS faqs (
   id BIGSERIAL PRIMARY KEY,
   question TEXT NOT NULL,
