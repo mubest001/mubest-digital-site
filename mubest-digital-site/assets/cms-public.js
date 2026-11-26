@@ -109,7 +109,7 @@
     if(!cta)return;
     const rows=items.map(r=>{const p=(data.portfolio||[]).find(x=>x.slug===r.project_slug);return {...r,service_title:(data.services||[]).find(x=>x.slug===r.service_slug)?.title||"",project_title:p?.title||"",project_cover:p?.cover_image||""};});
     const show=()=>{if(window.MubestTestimonials&&!document.querySelector(".md-testimonial-section"))cta.before(window.MubestTestimonials.section(rows));};
-    if(window.MubestTestimonials)show();else{const s=document.createElement("script");s.src="/assets/testimonial-showcase.js?v=1";s.onload=show;document.head.append(s);}
+    if(window.MubestTestimonials)show();else{const s=document.createElement("script");s.src="/assets/testimonial-showcase.js?v=2";s.onload=show;document.head.append(s);}
   }
 
   function renderFaqs(items) {
