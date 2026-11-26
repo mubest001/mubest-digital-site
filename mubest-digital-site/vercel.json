@@ -1,4 +1,18 @@
 {
   "cleanUrls": true,
-  "trailingSlash": true
+  "trailingSlash": true,
+  "rewrites": [
+    {
+      "source": "/blog/",
+      "destination": "/api/growth-content?mode=blog"
+    },
+    {
+      "source": "/blog/:slug/",
+      "destination": "/api/growth-content?mode=blog-post&slug=:slug"
+    },
+    {
+      "source": "/blog-sitemap.xml",
+      "destination": "/api/growth-content?mode=blog-sitemap"
+    }
+  ]
 }

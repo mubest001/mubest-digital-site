@@ -1,3 +1,4 @@
+import { BLOG_STARTERS } from './blog-starters.js';
 import { SERVICE_CATALOGUE, SERVICE_PORTFOLIO_CATEGORIES } from './service-catalogue.js';
 import { neon } from "@neondatabase/serverless";
 import { DEFAULT_SETTINGS, DEFAULT_PAGES, DEFAULT_SERVICES, DEFAULT_PORTFOLIO, DEFAULT_FAQS } from "./defaults.js";
@@ -135,6 +136,9 @@ const schema = [
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY(day,visitor_hash)
 )`,
+ `CREATE TABLE IF NOT EXISTS blog_posts (
+ id BIGSERIAL PRIMARY KEY,slug TEXT NOT NULL UNIQUE,title TEXT NOT NULL,description TEXT NOT NULL DEFAULT '',category TEXT NOT NULL DEFAULT '',service TEXT NOT NULL DEFAULT '',body TEXT NOT NULL DEFAULT '',source TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft','published','archived')),created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),published_at TIMESTAMPTZ
+)`,
 `CREATE TABLE IF NOT EXISTS audit_logs (
   id BIGSERIAL PRIMARY KEY,
   user_id BIGINT REFERENCES admin_users(id) ON DELETE SET NULL,
@@ -197,6 +201,9 @@ async function seed() {
       ) unique_items
     ),updated_at=NOW() WHERE s.key='portfolio_service_categories' AND EXISTS(SELECT 1 FROM migration)
   `, [JSON.stringify(SERVICE_CATALOGUE),JSON.stringify(SERVICE_PORTFOLIO_CATEGORIES)]);
+  await sql.query(`WITH migration AS (INSERT INTO site_settings(key,value) VALUES ('blog_starters_v1_applied','true'::jsonb) ON CONFLICT(key) DO NOTHING RETURNING key)
+ INSERT INTO blog_posts(slug,title,description,category,service,body,source,status)
+ SELECT x.slug,x.title,x.description,x.category,x.service,x.body,x.source,'draft' FROM jsonb_to_recordset($1::jsonb) AS x(slug text,title text,description text,category text,service text,body text,source text) CROSS JOIN migration ON CONFLICT(slug) DO NOTHING`,[JSON.stringify(BLOG_STARTERS)]);
   for (const item of DEFAULT_PORTFOLIO) {
     await sql.query(
       `INSERT INTO portfolio_projects (slug,title,category,excerpt,description,cover_image,gallery,project_url,featured,sort_order,status,published_at)
