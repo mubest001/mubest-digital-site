@@ -136,6 +136,18 @@ const schema = [
   notes TEXT DEFAULT '',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 )`,
+ `CREATE TABLE IF NOT EXISTS portal_clients (
+ id BIGSERIAL PRIMARY KEY,lead_id BIGINT REFERENCES leads(id) ON DELETE SET NULL,email TEXT NOT NULL UNIQUE,name TEXT NOT NULL,password_hash TEXT, status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','active','suspended','permanent')),suspended_until TIMESTAMPTZ,force_password BOOLEAN NOT NULL DEFAULT FALSE,session_version INTEGER NOT NULL DEFAULT 0,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+)`,
+`CREATE TABLE IF NOT EXISTS portal_tokens (token_hash TEXT PRIMARY KEY,client_id BIGINT NOT NULL REFERENCES portal_clients(id) ON DELETE CASCADE,purpose TEXT NOT NULL CHECK(purpose IN ('activate','reset')),expires_at TIMESTAMPTZ NOT NULL)`,
+`CREATE TABLE IF NOT EXISTS portal_sessions (token_hash TEXT PRIMARY KEY,client_id BIGINT NOT NULL REFERENCES portal_clients(id) ON DELETE CASCADE,version INTEGER NOT NULL,expires_at TIMESTAMPTZ NOT NULL)`,
+`CREATE TABLE IF NOT EXISTS portal_projects (id BIGSERIAL PRIMARY KEY,client_id BIGINT NOT NULL REFERENCES portal_clients(id) ON DELETE CASCADE,lead_id BIGINT UNIQUE REFERENCES leads(id) ON DELETE SET NULL,title TEXT NOT NULL,service TEXT NOT NULL DEFAULT '',service_slug TEXT NOT NULL DEFAULT '',portfolio_slug TEXT NOT NULL DEFAULT '',description TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'planning' CHECK(status IN ('planning','in_progress','revision','delivered','completed','on_hold')),progress INTEGER NOT NULL DEFAULT 0 CHECK(progress BETWEEN 0 AND 100),due_date DATE,milestones TEXT NOT NULL DEFAULT '',delivery_url TEXT NOT NULL DEFAULT '',delivered_at TIMESTAMPTZ,confirmed_at TIMESTAMPTZ,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`,
+`CREATE TABLE IF NOT EXISTS portal_messages (id BIGSERIAL PRIMARY KEY,project_id BIGINT NOT NULL REFERENCES portal_projects(id) ON DELETE CASCADE,sender TEXT NOT NULL CHECK(sender IN ('admin','client')),body TEXT NOT NULL,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`,
+`CREATE TABLE IF NOT EXISTS portal_login_limits (bucket TEXT PRIMARY KEY,attempts INTEGER NOT NULL DEFAULT 0,expires_at TIMESTAMPTZ NOT NULL)`,
+`ALTER TABLE feedback_submissions ADD COLUMN IF NOT EXISTS portal_project_id BIGINT REFERENCES portal_projects(id) ON DELETE CASCADE`,
+`CREATE UNIQUE INDEX IF NOT EXISTS portal_review_once ON feedback_submissions(portal_project_id) WHERE portal_project_id IS NOT NULL`,
+`CREATE INDEX IF NOT EXISTS portal_projects_client_idx ON portal_projects(client_id)`,
+`CREATE INDEX IF NOT EXISTS portal_messages_project_idx ON portal_messages(project_id,id)`,
 `CREATE TABLE IF NOT EXISTS ai_chat_usage (
   day DATE NOT NULL DEFAULT CURRENT_DATE,
   visitor_hash TEXT NOT NULL,

@@ -7,7 +7,7 @@
 (() => {
   "use strict";
 
-  const FEATURE_RELEASES = Object.freeze({portfolio:"2026-11-25.2",portfolioanalytics:"2026-11-25.2",seointelligence:"2026-11-25.3",services:"2026-11-25.3",portfoliocategories:"2026-11-25.3",growthcontent:"2026-11-26.2",feedback:"2026-11-26.4"});
+  const FEATURE_RELEASES = Object.freeze({portfolio:"2026-11-25.2",portfolioanalytics:"2026-11-25.2",seointelligence:"2026-11-25.3",services:"2026-11-25.3",portfoliocategories:"2026-11-25.3",growthcontent:"2026-11-26.2",feedback:"2026-11-26.5",clientportal:"2026-11-26.1"});
   const STORAGE_PREFIX = "mubest-content-studio-seen-updates-v1:";
   let storageKey = "";
   let seen = Object.create(null);

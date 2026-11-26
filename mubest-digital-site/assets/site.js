@@ -1,6 +1,10 @@
 /* Mubest Digital — public interactions, CMS bridge and Studio 4.0 runtime. */
 const menuToggle = document.querySelector('[data-menu-toggle]');
 const nav = document.querySelector('[data-site-nav]');
+if(nav&&!nav.querySelector('a[href="/client-portal/"]')){
+ const portalLink=document.createElement('a');portalLink.href='/client-portal/';portalLink.textContent='Client portal';nav.append(portalLink);
+}
+document.querySelectorAll('.site-footer .footer-col:first-of-type,.growth-footer').forEach(footer=>{if(!footer.querySelector('a[href="/client-portal/"]')){const a=document.createElement('a');a.href='/client-portal/';a.textContent='Client portal';footer.append(a);}});
 if (menuToggle && nav) {
   menuToggle.addEventListener('click', () => {
     const open = nav.classList.toggle('open');
@@ -45,7 +49,7 @@ if(!editorPreview){
   const assistant=document.createElement('script');assistant.src='/assets/ai-widget.js?v=quota-fallback-v1';assistant.defer=true;document.body.appendChild(assistant);
 }
 
-const cmsScript=document.createElement('script');cmsScript.src='/assets/cms-public.js?v=unified-header-v1';cmsScript.defer=true;
+const cmsScript=document.createElement('script');cmsScript.src='/assets/cms-public.js?v=portal-v1';cmsScript.defer=true;
 cmsScript.addEventListener('load',()=>{
   const brandTheme=document.createElement('link');brandTheme.rel='stylesheet';brandTheme.href='/assets/brand-two-color.css';brandTheme.dataset.brandTheme='two-colour';document.head.appendChild(brandTheme);
   if(!document.querySelector('[data-premium-v6-css]')){

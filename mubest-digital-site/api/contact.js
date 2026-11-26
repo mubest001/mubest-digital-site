@@ -26,7 +26,7 @@ export default async function handler(req, res) {
       "INSERT INTO leads (name,email,service,budget,message) VALUES ($1,$2,$3,$4,$5)",
       [name,email,service,budget,message]
     );
-    return res.status(201).json({ ok: true, message: "Thank you. Your enquiry has been received." });
+    return res.status(201).json({ ok: true, message: "Thank you. Your enquiry has been received. If approved, Mubest Digital will send a private client portal activation link to your email." });
   } catch (error) {
     console.error("Contact API:", error);
     return res.status(503).json({ error: "The enquiry form is temporarily unavailable. Please try again shortly." });

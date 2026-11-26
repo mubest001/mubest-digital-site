@@ -1,3 +1,4 @@
+import portalHandler from '../lib/portal-handler.js';
 import feedbackHandler from '../lib/feedback-handler.js';
 import {ensureSchema,query,audit} from '../lib/db.js';
 import {requireAdmin,assertSameOrigin} from '../lib/auth.js';
@@ -12,6 +13,7 @@ const frame=(title,description,path,body)=>'<!doctype html><html lang="en"><head
 function html(res,status,content){res.setHeader('Content-Type','text/html; charset=utf-8');res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');if(status!==200)res.setHeader('X-Robots-Tag','noindex');return res.status(status).send(content);}
 export default async function handler(req,res){try{
  const u=new URL(req.url,'https://local.invalid');const mode=String(req.query?.mode||u.searchParams.get('mode')||'admin');
+ if(mode.startsWith('portal-'))return portalHandler(req,res,mode.slice(7));
  if(mode.startsWith('feedback-'))return feedbackHandler(req,res,mode.slice(9));
  await ensureSchema();
  if(mode==='blog'||mode==='blog-post'||mode==='blog-sitemap'){

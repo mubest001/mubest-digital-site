@@ -26,7 +26,7 @@ export default async function handler(req, res) {
       query("SELECT slug,published FROM site_pages WHERE status='published'"),
       query("SELECT id,slug,title,category,excerpt,description,cover_image,gallery,project_url,featured,sort_order,details FROM portfolio_projects WHERE status='published' ORDER BY featured DESC,sort_order ASC,created_at DESC"),
       query("SELECT id,slug,title,summary,description,tag,icon,deliverables,sort_order FROM services WHERE status='published' ORDER BY sort_order ASC,id ASC"),
-      query("SELECT id,name,role,company,quote,avatar_url,rating,sort_order,service_slug,project_slug,featured FROM testimonials WHERE status='published' ORDER BY featured DESC,sort_order ASC,id DESC"),
+      query("SELECT id,name,role,company,quote,avatar_url,rating,sort_order,service_slug,project_slug,featured FROM testimonials WHERE status='published' AND EXISTS(SELECT 1 FROM feedback_submissions f JOIN portal_projects p ON p.id=f.portal_project_id WHERE f.testimonial_id=testimonials.id AND f.status='approved' AND f.consent AND p.confirmed_at IS NOT NULL) ORDER BY featured DESC,sort_order ASC,id DESC"),
       query("SELECT id,question,answer,sort_order FROM faqs WHERE status='published' ORDER BY sort_order ASC,id ASC")
     ]);
     const settings = Object.fromEntries(settingsRows.map(row => [row.key, row.value]));
